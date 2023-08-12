@@ -30,6 +30,7 @@ Like.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Like.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 User.hasMany(Video, { foreignKey: "user_id" });
+Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes' });
 Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });

@@ -51,7 +51,7 @@ const getLikeAnalytics = async (req, res) => {
     let { id } = req.userData
     let result = await Like.findAll({
       attributes: [
-        [sequelize.fn('DAYOFWEEK', sequelize.col('createdAt')), 'day'],
+        // [sequelize.fn('DAYOFWEEK', sequelize.col('createdAt')), 'day'],
         [sequelize.fn('SUM', sequelize.col('id')), 'total_like'],
         [literal('DAYNAME(createdAt)'), 'dayOfWeek'], // Extract the day of the week
 

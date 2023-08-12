@@ -267,6 +267,9 @@ const getVideo = async (req, res, next) => {
   }
 };
 
+
+
+
 const getAllUserVideos = async (req, res, next) => {
   logger.info("VERSION 2.0 -> VIDEO: GET ALL USER VIDEOS API CALLED");
   try {
@@ -274,9 +277,16 @@ const getAllUserVideos = async (req, res, next) => {
       include: [{
         model: User,
         attributes: ['id', 'username', 'profile_pic', 'bio', 'nickname', 'instagram', 'you_tube', 'facebook'],
-      }],
+      },
+      {
+        model: Like,
+        as: 'likes',
+        attributes: ['id', 'reciever_id', 'sender_id'],
+
+      }
+      ],
     });
-    // videos = JSON.stringify(videos)
+
 
     return res.status(200).json({
       success: true,
@@ -289,6 +299,20 @@ const getAllUserVideos = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 const getUserPostedImages = async (req, res, next) => {
   logger.info("VERSION 2.0 -> VIDEO: GET ALL USER POSTED IMAGES API CALLED");

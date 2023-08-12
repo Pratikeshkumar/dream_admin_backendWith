@@ -184,7 +184,7 @@ const userInfoById = async (req, res, next) => {
     let user = await User.findOne({
       attributes: {
         exclude: ['password']
-      }, 
+      },
       where: { id: user_id },
       include: [
         {
@@ -387,7 +387,7 @@ const sendGifts = async (req, res, next) => {
     const sender_id = id;
     const userIdToUpdate = id;
     const additionalWalletValue = diamonds;
-    
+
 
     let sended_gifts = await Gift.create({
       diamonds,
@@ -442,10 +442,10 @@ const sendGifts = async (req, res, next) => {
 
   } catch (error) {
     logger.error(error)
-    res.status(500).json({message: 'error while sending gifts, Please try after some time'})
+    res.status(500).json({ message: 'error while sending gifts, Please try after some time' })
   }
 }
- 
+
 const follow = async (req, res, next) => {
   logger.info("INFO - USER FOLLOW API CALLED");
   try {
@@ -654,12 +654,43 @@ const getUniqueUsers = async (userId) => {
       attributes: ['id', 'nickname', 'profile_pic', 'username'],
     });
 
-   return JSON.parse(JSON.stringify(uniqueChatedPeople))
+    return JSON.parse(JSON.stringify(uniqueChatedPeople))
   } catch (error) {
     console.error('Error retrieving unique users:', error);
     throw error;
   }
 };
+
+const getAllFollowingsUsers = async (req, res) => {
+  logger.info('INFO -> ALL FOLLOWINGS USERS API CALLED')
+  try {
+    const { id } = req.userData;
+
+    let user = await User.findAll({
+      where: { id },
+      include: {
+        model: User,
+        as: 'Following',
+        attributes: ['id', 'nickname', 'username', 'profile_pic']
+      }
+    })
+    if (!user) throw errorHandler("User have not following anyone. Please follow someone to continue")
+
+    user = JSON.parse(JSON.stringify(user))
+
+    res.status(201).json({
+      message: 'success',
+      payload: user
+    })
+
+
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error while fetching the user followings details, Please try again after some time' })
+  }
+
+}
 
 
 
@@ -681,5 +712,6 @@ module.exports = {
   getFollowersDetails,
   getFollowingsDetails,
   getAllMessages,
-  getMyAllChatedPerson
+  getMyAllChatedPerson,
+  getAllFollowingsUsers
 };

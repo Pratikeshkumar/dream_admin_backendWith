@@ -3,7 +3,6 @@ const { DataTypes } = require("sequelize");
 const { User } = require('./user')
 const { Video } = require('./video')
 
-
 const Like = sq.define(
     "likes", {
     id: {
@@ -29,12 +28,18 @@ const Like = sq.define(
     },
     sender_id: {
         type: DataTypes.INTEGER,
-        unique: false,
+        unique: false, 
         references: {
             model: User,
             key: 'id'
         }
     },
+}, {
+    uniqueKeys: {
+        unique_like: {
+            fields: ['video_id', 'reciever_id', 'sender_id']
+        }
+    }
 });
 
 

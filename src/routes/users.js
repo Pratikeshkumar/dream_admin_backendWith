@@ -21,6 +21,7 @@ router.get('/:userId/friends', getAllUserFriends);
 router.get('/:userId/feeds', getFeeds);
 router.get('/followersDetails/:user_id', validate(userValidation.userInfoById), userApis2.getFollowersDetails)
 router.get('/followingsDetails/:user_id', validate(userValidation.userInfoById), userApis2.getFollowingsDetails)
+router.get('/getAllFollowingsUsers', userAuth, userApis2.getAllFollowingsUsers)
 
 /************************************* VERSION 2.0 */
 router.post('/signup', userApis2.signup);

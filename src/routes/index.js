@@ -10,6 +10,8 @@ const friends = require("./friends");
 const country = require('./country');
 const search = require('./search')
 const analytics=require('./analytics')
+const message_subscription = require('./messageSubscription')
+
 
 router.use("/admin", admin);
 router.use("/users", users);
@@ -19,7 +21,8 @@ router.use("/likes", likes);
 router.use("/friends", friends);
 router.use("/country", country)
 router.use('/search', search)
-router.use('/search', search)
-router.use('/analytics',analytics)
+router.use('/analytics', analytics)
+router.use('/message_subscription', message_subscription)
+
 
 module.exports = router;

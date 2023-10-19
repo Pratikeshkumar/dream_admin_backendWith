@@ -12,6 +12,7 @@ const addLanguage = async (req, res) => {
     logger.info('INFO -> LANGUAGE ADDING API CALLED');
     try {
         const { name, code } = req.body;
+        console.log(req.body)
 
         // Check if the required fields are provided
         if (!name || !code) {
@@ -38,15 +39,17 @@ const addLanguage = async (req, res) => {
 const getLanguage = async (req, res) => {
     logger.info('INFO -> LANGUAGE ADDING API CALLED')
     try {
-        const { name, code } = req?.body;
-        const { page = 1, perPage = 10 } = req.query;
+
+        const { page, perPage } = req.query;
+
+        console.log(Number(page), Number(perPage))
 
         // Calculate the offset based on the page and perPage values
-        const offset = (page - 1) * perPage;
+        const offset = (Number(page) - 1) * Number(perPage);
 
         // Query the database with pagination
         const languages = await Language.findAll({
-            limit: perPage,
+            limit: Number(perPage),
             offset,
         });
 
@@ -60,8 +63,8 @@ const getLanguage = async (req, res) => {
         });
     } catch (error) {
         logger.error(error);
-        res.status(500).json({ message: 'Error generated while processing the request', error });
-    }
+        res.status(500).json({ message: 'Error generated while processing the request', error });
+}
 }
 
 

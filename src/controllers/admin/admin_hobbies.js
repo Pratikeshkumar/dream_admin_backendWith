@@ -12,12 +12,18 @@ const addHobbies = async (req, res) => {
     logger.info('INFO -> ADDING HOBBIES API CALLED');
     try {
         const { name, category } = req.body;
+           console.log(name,"name")
+        if (!name || !category) {
+            return res.status(400).json({ message: 'Name and category are required' });
+        }
 
         // Create a new hobby
+
         const newHobby = await Hobbies.create({
             name,
             category,
         });
+        console.log(newHobby,"newHobby")
 
         res.status(201).json({ message: 'Hobby added successfully', data: newHobby });
     } catch (error) {
@@ -27,30 +33,48 @@ const addHobbies = async (req, res) => {
 }
 
 
+// const getHobbies = async (req, res) => {
+//     logger.info('INFO -> GETTING HOBBIES API CALLED');
+//     try {
+//         const { page = 1, perPage = 15 } = req.query;
+
+//         // Calculate the offset based on the page and perPage values
+//         const offset = (page - 1) * perPage;
+
+//         // Retrieve hobbies with pagination
+//         const hobbies = await Hobbies.findAndCountAll({
+//             limit: perPage,
+//             offset,
+//         });
+
+//         res.status(200).json({
+//             message: 'Hobbies retrieved successfully',
+//             data: hobbies.rows,
+//             total: hobbies.count,
+//         });
+//     } catch (error) {
+//         logger.error(error);
+//         res.status(500).json({ message: 'Error generated while processing your request', error });
+//     }
+// }
 const getHobbies = async (req, res) => {
-    logger.info('INFO -> GETTING HOBBIES API CALLED');
     try {
-        const { page = 1, perPage = 10 } = req.query;
-
-        // Calculate the offset based on the page and perPage values
-        const offset = (page - 1) * perPage;
-
-        // Retrieve hobbies with pagination
-        const hobbies = await Hobbies.findAndCountAll({
-            limit: perPage,
-            offset,
-        });
-
-        res.status(200).json({
-            message: 'Hobbies retrieved successfully',
-            data: hobbies.rows,
-            total: hobbies.count,
-        });
+      const hobbies = await Hobbies.findAll(); // Assuming Sequelize model Hobbies is set up correctly
+  
+      res.status(200).json({
+        message: 'Hobbies retrieved successfully',
+        data: hobbies,
+      });
     } catch (error) {
-        logger.error(error);
-        res.status(500).json({ message: 'Error generated while processing your request', error });
+      res.status(500).json({ message: 'Error while processing your request', error });
     }
-}
+  };
+  
+  
+  
+  
+  
+  
 
 
 const updateHobbies = async (req, res) => {

@@ -169,8 +169,8 @@ VideoView.belongsTo(Video)
 User.hasMany(VideoView)
 VideoView.belongsTo(User)
 
-
-
+Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments' });
+PostComment.belongsTo(Video, { foreignKey: 'video_id' });
 
 
 module.exports = {

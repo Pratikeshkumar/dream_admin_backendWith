@@ -190,9 +190,33 @@ const completePasswordReset = async (req, res) => {
 
 
 
+const getAdminInfo = async (req, res) => {
+    logger.info('INFO -> GETING INFORMATION OF ADMIN API CALLED')
+    try {
+        const { email } = req.userData;
+        let result = await Admin.findAll({
+            where: { email }
+        })
+
+       result = JSON.parse(JSON.stringify(result))
+       delete result[0].password
+        res.status(200).json({
+            success: true,
+            user: result
+        })
+    } catch (error) {
+        logger.error(error)
+        res.status(500).json({ message: 'Error generated while processing your request' })
+    }
+}
+
+
+
+
 module.exports = {
     adminLogin,
     adminRegistration,
     forgotPassword,
-    completePasswordReset
+    completePasswordReset,
+    getAdminInfo
 }

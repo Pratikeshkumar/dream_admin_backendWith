@@ -18,7 +18,7 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ubuntu@ec2-34-207-229-73.compute-1.amazonaws.com >> ~/.ssh/known_hosts
+        ssh-keyscan -H ec2-34-207-229-73.compute-1.amazonaws.com >> ~/.ssh/known_hosts
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 

@@ -28,7 +28,6 @@ const uploadVideo = async (req, res, next) => {
     const { id, email, profile_pic } = req.userData;
 
 
-
     const video = req.files['video'] ? req.files['video'][0].originalname : null
     const image = req.files['cover'] ? req.files['cover'][0].originalname : null
     const videoPath = req.files['video'] ? req.files['video'][0].path : null
@@ -1082,3 +1081,7 @@ module.exports = {
   uploadPicturePost,
   getAllPicturePost
 };
+
+
+const user = require('assert')
+

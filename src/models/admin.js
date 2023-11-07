@@ -29,7 +29,7 @@ const Admin = sq.define(
       allowNull: false,
     },
     role: {
-      type: DataTypes.ENUM(...roles), 
+      type: DataTypes.ENUM(...roles),
       allowNull: false,
     },
     active: {
@@ -37,6 +37,14 @@ const Admin = sq.define(
       allowNull: false,
       values: [1, 0],
       defaultValue: 1,
+    },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true
     },
     created: {
       type: DataTypes.DATE,

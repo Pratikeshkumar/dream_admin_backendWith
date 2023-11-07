@@ -6,8 +6,7 @@ const {Gift} = require('../../models')
 
 const getGifts = async (req, res) => {
   try {
-    const gifts = await Gift.findAll(); // Assuming Sequelize model Hobbies is set up correctly
-
+    const gifts = await Gift.findAll(); 
     res.status(200).json({
       message: "Gifts retrieved successfully",
       data: gifts,

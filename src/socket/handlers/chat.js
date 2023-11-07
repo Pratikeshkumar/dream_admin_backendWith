@@ -17,7 +17,7 @@ module.exports = (socket, io) => {
     });
 
 
-    socket.on('customEvent', async (data) => {
+    socket.on('customEvent', async (data)=> {
         const {
             id,
             senderId,

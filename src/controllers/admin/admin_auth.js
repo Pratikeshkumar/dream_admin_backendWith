@@ -90,7 +90,7 @@ const generateOTP = () => {
     // Generate a random 6-digit OTP
     return Math.floor(100000 + Math.random() * 900000).toString();
 };
-
+console.log(generateOTP,"otp")
 // Function to send the OTP to the user's email
 const sendOTPEmail = async (email, otp) => {
     // Create a nodemailer transporter (replace with your SMTP configuration)
@@ -137,11 +137,12 @@ const forgotPassword = async (req, res) => {
 
         // Step 2: Generate a random OTP
         const otp = generateOTP();
+        console.log(otp,"otp")
 
         // Step 3: Hash the OTP
         const hashedOTP = await jwt.sign({ otp: otp }, JWT_KEY, { expiresIn: '1h' })
         // Step 4: Send the OTP to the user's email (you can do this here or earlier as needed)
-        // await sendOTPEmail(email, otp)
+        await sendOTPEmail(email, otp)
         console.log(otp)
 
         res.status(200).json({ message: 'OTP sent to email', hashedOTP });
@@ -156,6 +157,7 @@ const completePasswordReset = async (req, res) => {
     logger.info('INFO -> COMPLETE PASSWORD RESET API CALLED');
     try {
         const { email, otp, hashedToken, newPassword } = req.body;
+        console.log(email,otp,"oooooooooottpps")
 
         // Step 1: Check if the user with the provided email exists in your database (replace with your logic)
         const user = await Admin.findOne({ where: { email } });
@@ -166,6 +168,7 @@ const completePasswordReset = async (req, res) => {
 
         // Step 2: Verify the OTP provided by the user
         const originalOtp = await jwt.verify(hashedToken, JWT_KEY)
+      
 
         const otpIsValid = otp === originalOtp?.otp;
 
@@ -194,5 +197,6 @@ module.exports = {
     adminLogin,
     adminRegistration,
     forgotPassword,
-    completePasswordReset
+    completePasswordReset,
+    
 }

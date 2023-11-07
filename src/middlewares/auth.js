@@ -16,7 +16,9 @@ exports.userAuth = async (req, res, next) => {
     let userData = await User.findOne({
       where: { email: decoded.email }
     });
+    console.log(userData.users,"rrnewuser")
     userData = JSON.parse(JSON.stringify(userData));
+    
 
     if (!userData) throw errorHandler("Token expired!", "unAuthorized");
 
@@ -39,9 +41,10 @@ exports.adminAuth = async (req, res, next) => {
 
     let userData = await Admin.findOne({
       where: { email: decoded.email },
-      attributes: ["email"],
+      // attributes: ["email"],
     });
     userData = JSON.parse(JSON.stringify(userData));
+    // console.log(userData,"userData")
 
     if (!userData && !userData.active) throw errorHandler("Account is deactivated!", "unAuthorized");
 
@@ -53,3 +56,14 @@ exports.adminAuth = async (req, res, next) => {
     return next(error)
   }
 };
+
+// {
+//   id: 4,
+//   first_name: 'Dream',
+//   last_name: 'Users',
+//   email: 'dream@gmail.com',
+//   password: '$2b$10$JPFhUY1pA4FN1N1F9j6WN.I6PA6CEWfs.5I4dS3KmSaQf47alBSg2',
+//   role: 'superadmin',
+//   active: 1,
+//   created: '2023-09-28T09:20:46.000Z'
+// } 

@@ -32,6 +32,7 @@ const Language = require('./language')
 const VideoView = require('./video_view')
 const PicturePost = require('./picture_post')
 const Occupations = require('./occupations')
+const GiftListing = require('./gift_listing')
 
 
 CommentRose.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
@@ -39,7 +40,7 @@ CommentRose.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentRose.belongsTo(Video, { foreignKey: 'video_id', as: 'comment_rose_video' });
 CommentRose.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' })
 
-
+Video.hasMany(CommentRose, { foreignKey: 'video_id', as: 'comment_rose_video', onDelete: 'CASCADE' });
 
 User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
@@ -47,8 +48,9 @@ User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
 Gift.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Gift.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
+Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
+// Video.hasMany(Gift, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 
 
@@ -57,12 +59,12 @@ Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 
 Like.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Like.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
+Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 
 
 User.hasMany(Video, { foreignKey: "user_id" });
-Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes' });
+Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes', onDelete: 'CASCADE' });
 Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
@@ -74,7 +76,8 @@ PostComment.belongsTo(User, {
 })
 PostComment.belongsTo(Video, {
   foreignKey: 'video_id',
-  as: 'video'
+  as: 'video',
+  onDelete: 'CASCADE'
 })
 PostCommentReply.belongsTo(User, {
   foreignKey: 'user_id',
@@ -84,22 +87,25 @@ PostCommentReply.belongsTo(User, {
 PostCommentReply.belongsTo(Video, {
   foreignKey: 'video_id',
   as: 'video',
+  
 });
+// Video.hasMany(PostCommentReply, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 PostCommentReply.belongsTo(PostComment, {
   foreignKey: 'parent_comment_id',
   as: 'parentComment',
+  
 });
 
-PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies' });
+PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies', onDelete: 'CASCADE' });
 
-PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes' });
+PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes', onDelete: 'CASCADE' });
 CommentLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 CommentLike.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' });
 
-PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes' });
+PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes', onDelete: 'CASCADE' });
 CommentDisLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentDisLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentDisLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
@@ -159,17 +165,19 @@ VideoCity.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCity.belongsTo(City, { foreignKey: 'city_id', as: 'city' });
 VideoCountry.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCountry.belongsTo(Country, { foreignKey: 'countriesId', as: 'country' });
-User.hasMany(UserInteraction)
-UserInteraction.belongsTo(User)
+// User.hasMany(UserInteraction)
+// UserInteraction.belongsTo(User)
+User.hasMany(UserInteraction, { foreignKey: 'user_id' });
+UserInteraction.belongsTo(User, { foreignKey: 'user_id' });
 
 
-Video.hasMany(VideoView)
-VideoView.belongsTo(Video)
 
-User.hasMany(VideoView)
-VideoView.belongsTo(User)
+Video.hasMany(VideoView, { foreignKey: 'video_id', as: 'views' });
+VideoView.belongsTo(Video, { foreignKey: 'video_id', as: 'views' })
 
-Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments' });
+
+
+Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments', onDelete: 'CASCADE' });
 PostComment.belongsTo(Video, { foreignKey: 'video_id' });
 
 
@@ -207,5 +215,6 @@ module.exports = {
   ProfileVisit,
   VideoView,
   PicturePost,
-  Occupations
+  Occupations,
+  GiftListing
 };

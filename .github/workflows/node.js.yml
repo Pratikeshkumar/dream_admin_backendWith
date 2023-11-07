@@ -1,0 +1,39 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H your-ec2-instance-ip-or-dns >> ~/.ssh/known_hosts
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Check if Git repository exists on the EC2 instance
+      run: |
+        if ! ssh ubuntu@ec2-34-207-229-73.compute-1.amazonaws.com '[ -d "dream" ]'; then
+          git clone https://github.com/Pratikeshkumar/dream_admin_backendWith.git dream 
+        fi
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Deploy to EC2
+      run: |
+        ssh ubuntu@ec2-34-207-229-73.compute-1.amazonaws.com 'cd dream && git pull origin main && npm install && pm2 start ./bin/www.js'
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+

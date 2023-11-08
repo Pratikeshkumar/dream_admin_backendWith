@@ -1,0 +1,44 @@
+name: Node.js CI with Yarn
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x] # Replace with the desired Node.js version
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js ${{ matrix.node-version }} and Yarn
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.yarnpkg.com'
+
+      - name: Install dependencies
+        run: yarn install
+        
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ vars.EC2_HOST }}  # The public IP or hostname of your EC2 instance
+          username: ${{ vars.EC2_USER }}  # SSH username for your EC2 instance
+          key: ${{ secrets.SSH_PRIVATE_KEY }}  # SSH private key (stored as a GitHub secret)
+          script: |
+            # Checkout code on the EC2 instance
+            cd dream_admin_backendWith
+            git checkout .
+            git pull origin main
+            yarn 
+            # Restart your Node.js application (you may need to customize this for your specific setup)
+            pm2 restart ./bin/www.js

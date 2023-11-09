@@ -79,26 +79,51 @@ const { Sequelize ,Op} = require('sequelize');
 //     });
 //   }
 // };
-// const getUsers = async (req, res) => {
-//   logger.info("INFO -> GETTING USERS API CALLED");
-//   try {
-//     // Retrieve all users without pagination
-//     const users = await User.findAll({
-//       // Add sorting options here if needed
-//     });
+const getBasicUsers = async (req, res) => {
+  logger.info("INFO -> GETTING BasicUSERS API CALLED");
+  try {
+    // Retrieve all users without pagination
+    const users = await User.findAll({
+      where: {
+        account_type: 'basic',
+      },
+    });
 
-//     res.status(200).json({
-//       message: "Users retrieved successfully",
-//       data: users,
-//     });
-//   } catch (error) {
-//     logger.error(error);
-//     res.status(500).json({
-//       message: "Error generated while processing your request",
-//       error: error.message,
-//     });
-//   }
-// };
+    res.status(200).json({
+      message: "Users retrieved successfully",
+      data: users,
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      message: "Error generated while processing your request",
+      error: error.message,
+    });
+  }
+};
+
+const getPremiumUsers = async (req, res) => {
+  logger.info("INFO -> GETTING BasicUSERS API CALLED");
+  try {
+    // Retrieve all users without pagination
+    const users = await User.findAll({
+      where: {
+        account_type: 'premium',
+      },
+    });
+
+    res.status(200).json({
+      message: "Users retrieved successfully",
+      data: users,
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      message: "Error generated while processing your request",
+      error: error.message,
+    });
+  }
+};
 // const getUsers = async (req, res) => {
 //   logger.info("INFO -> GETTING USERS API CALLED");
 //   try {
@@ -497,6 +522,92 @@ const getUsersVideo = async (req, res) => {
   }
 };
 
+const sendGifts = async (req, res, next) => {
+  logger.info("*******SENDING GIFTS*******")
+  try {
+    const {
+      diamonds,
+      video_id,
+      reciever_id,
+    } = req.body;
+    const { id, email } = req.userData;
+    const sender_id = id;
+    const userIdToUpdate = id;
+    const additionalWalletValue = diamonds;
+
+
+    let sended_gifts = await Gift.create({
+      diamonds,
+      video_id,
+      reciever_id,
+      sender_id
+    })
+
+    sended_gifts = JSON.parse(JSON.stringify(sended_gifts));
+    if (!sended_gifts) throw errorHandler("Unexpected error occured while creating user!", "badRequest");
+    async function updateUserWallet(userId, additionalWalletValue) {
+      try {
+        const user = await User.findByPk(userId);
+        if (!user) {
+          console.log('User not found');
+          return;
+        }
+        const currentWalletValue = user.wallet || 0;
+        const newWalletValue = currentWalletValue - additionalWalletValue;
+        let updated_wallet = await user.update({ wallet: newWalletValue });
+        updated_wallet = JSON.parse(JSON.stringify(updated_wallet));
+
+        const reciever_video = await Video.findByPk(video_id)
+        if (!user) {
+          logger.error('video not found');
+          return;
+        }
+        const currentVideoWalletValue = reciever_video.diamond_value || 0;
+        const newVideoWalletValue = currentVideoWalletValue + diamonds;
+        let updated_video_wallet = await Video.update(
+          { diamond_value: newVideoWalletValue },
+          {
+            where: { id: video_id, },
+          });
+        updated_video_wallet = JSON.parse(JSON.stringify(updated_video_wallet));
+
+
+        res.status(201).json({
+          message: 'successfull sended',
+          ...updated_wallet,
+          ...sended_gifts
+        })
+        console.log(updated_video_wallet)
+
+        console.log('User wallet updated successfully!');
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
+    updateUserWallet(userIdToUpdate, additionalWalletValue);
+
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error while sending gifts, Please try after some time' })
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -506,6 +617,9 @@ module.exports = {
   updateUserActiveStatus,
   getBlockedUsers,
   updateUserStatus,
-  getUsersVideo
+  getUsersVideo,
+  sendGifts,
+  getBasicUsers,
+  getPremiumUsers
 
 };

@@ -14,6 +14,9 @@ router.patch('/updateUserActiveStatus/:id', adminAuth, adminUserApis.updateUserA
 router.get('/getBlockedusers/:page/:perPage', adminAuth, adminUserApis.getBlockedUsers)
 router.patch('/updateUserStatus/:id', adminAuth,adminUserApis.updateUserStatus)
 router.get('/getUsersVideo/:user_id',adminAuth,adminUserApis.getUsersVideo)
+router.post('/sendGift',adminAuth,adminUserApis.sendGifts)
+router.get('/getBasicUsers', adminAuth, adminUserApis.getBasicUsers);
+router.get('/getPremiumUsers', adminAuth, adminUserApis.getPremiumUsers);
 
 
 module.exports = router

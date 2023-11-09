@@ -33,6 +33,7 @@ const VideoView = require('./video_view')
 const PicturePost = require('./picture_post')
 const Occupations = require('./occupations')
 const GiftListing = require('./gift_listing')
+const Promotion = require('./promotions')
 
 
 CommentRose.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
@@ -181,6 +182,13 @@ Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments', onDelete: '
 PostComment.belongsTo(Video, { foreignKey: 'video_id' });
 
 
+
+User.hasMany(Promotion, { foreignKey: 'user_id' })
+Promotion.belongsTo(User, { foreignKey: 'user_id' })
+
+Video.hasMany(Promotion, { foreignKey: 'video_id' })
+Promotion.belongsTo(Video, { foreignKey: 'video_id' })
+
 module.exports = {
   Admin,
   User,
@@ -216,5 +224,6 @@ module.exports = {
   VideoView,
   PicturePost,
   Occupations,
-  GiftListing
+  GiftListing,
+  Promotion
 };

@@ -1,3 +1,4 @@
+
 // add occupations
 // get occupations
 // update occupation
@@ -59,35 +60,55 @@ const addOccupations = async (req, res) => {
 
 
 
+// const getOccupations = async (req, res) => {
+//     logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
+//     try {
+//         const { page = 1, perPage = 10 } = req.query;
 
+//         // Calculate the offset based on the page and perPage values
+//         const offset = (page - 1) * perPage;
+
+//         // Retrieve all occupations, including nested ones, with pagination
+//         const occupations = await Occupations.findAndCountAll({
+//             include: [
+//                 { model: Occupations, as: 'children' }, // Include nested occupations
+//                 { model: User }, // Include associated user data if needed
+//             ],
+//             limit: perPage,
+//             offset,
+//         });
+
+//         res.status(200).json({
+//             message: 'Occupations retrieved successfully',
+//             data: occupations.rows, // List of occupations
+//             total: occupations.count, // Total count of occupations
+//         });
+//     } catch (error) {
+//         logger.error(error);
+//         res.status(500).json({ message: 'Error generated while processing your request', error });
+//     }
+// }
 const getOccupations = async (req, res) => {
     logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
     try {
-        const { page = 1, perPage = 10 } = req.query;
+        // Retrieve occupations from the database
+        const occupations = await Occupations.findAll();
 
-        // Calculate the offset based on the page and perPage values
-        const offset = (page - 1) * perPage;
+        // Check if any occupations were found
+        if (!occupations || occupations.length === 0) {
+            return res.status(404).json({ message: 'No occupations found' });
+        }
 
-        // Retrieve all occupations, including nested ones, with pagination
-        const occupations = await Occupations.findAndCountAll({
-            include: [
-                { model: Occupations, as: 'children' }, // Include nested occupations
-                { model: User }, // Include associated user data if needed
-            ],
-            limit: perPage,
-            offset,
-        });
-
-        res.status(200).json({
-            message: 'Occupations retrieved successfully',
-            data: occupations.rows, // List of occupations
-            total: occupations.count, // Total count of occupations
-        });
+        // Return the list of occupations
+        res.status(200).json({ occupations });
     } catch (error) {
         logger.error(error);
         res.status(500).json({ message: 'Error generated while processing your request', error });
     }
-}
+};
+
+
+
 
 
 

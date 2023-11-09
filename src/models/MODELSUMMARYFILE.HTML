@@ -1,0 +1,45 @@
+| Entity              | Associated Entity       | Association Type       | Description                        |
+|---------------------|-------------------------|------------------------|------------------------------------|
+| User                | Video                   | hasMany                | User can have multiple videos      |
+| User                | Like                    | hasMany                | User can have multiple likes       |
+| User                | Gift                    | hasMany                | User can send/receive multiple gifts|
+| User                | UserInteraction         | hasMany                | User can have multiple interactions|
+| User                | VideoView               | hasMany                | User can view multiple videos      |
+| User                | Transaction             | hasMany                | User can have multiple transactions|
+| User                | Message                 | hasMany                | User can send/receive messages     |
+| User                | MessageSubscription     | hasMany                | User can have message subscriptions|
+| Video               | Like                    | hasMany                | Video can have multiple likes      |
+| Video               | PostComment             | hasMany                | Video can have multiple comments   |
+| Video               | VideoCity               | belongsTo              | Video is associated with a city    |
+| Video               | VideoCountry            | belongsTo              | Video is associated with a country |
+| Like                | User                    | belongsTo              | Like is associated with a user     |
+| Like                | Video                   | belongsTo              | Like is associated with a video    |
+| Gift                | User                    | belongsTo              | Gift is sent/received by a user    |
+| Gift                | Video                   | belongsTo              | Gift is associated with a video    |
+| UserInteraction     | User                    | belongsTo              | Interaction is associated with a user|
+| CommentLike         | User                    | belongsTo              | Comment like is associated with a user|
+| CommentLike         | Video                   | belongsTo              | Comment like is associated with a video|
+| CommentLike         | PostComment             | belongsTo              | Comment like is associated with a comment|
+| CommentDisLike      | User                    | belongsTo              | Comment dislike is associated with a user|
+| CommentDisLike      | Video                   | belongsTo              | Comment dislike is associated with a video|
+| CommentDisLike      | PostComment             | belongsTo              | Comment dislike is associated with a comment|
+| CommentRose         | User                    | belongsTo              | Comment rose is associated with a user|
+| CommentRose         | Video                   | belongsTo              | Comment rose is associated with a video|
+| CommentRose         | PostComment             | belongsTo              | Comment rose is associated with a comment|
+| PostComment         | User                    | belongsTo              | Comment is posted by a user        |
+| PostComment         | Video                   | belongsTo              | Comment is associated with a video|
+| PostCommentReply    | User                    | belongsTo              | Comment reply is posted by a user  |
+| PostCommentReply    | Video                   | belongsTo              | Comment reply is associated with a video|
+| PostCommentReply    | PostComment             | belongsTo              | Comment reply is associated with a comment|
+| Message             | User                    | belongsTo              | Message is sent by a user          |
+| Message             | Message                 | belongsTo              | Message is a reply to another message|
+| Message             | User                    | belongsTo              | Message is received by a user      |
+| MessageSubscription | User                    | belongsTo              | Message subscription is associated with a user|
+| TaggingUser         | Video                   | belongsTo              | Tagging user is associated with a video|
+| TaggingUser         | User                    | belongsTo              | Tagging user is associated with a user|
+| TaggingText         | Video                   | belongsTo              | Tagging text is associated with a video|
+| TaggingText         | Tag                     | belongsTo              | Tagging text is associated with a tag|
+| VideoCity           | Video                   | belongsTo              | Video is associated with a city    |
+| VideoCity           | City                    | belongsTo              | Video is associated with a specific city|
+| VideoCountry        | Video                   | belongsTo              | Video is associated with a country |
+| VideoCountry        | Country                 | belongsTo              | Video is associated with a specific country|

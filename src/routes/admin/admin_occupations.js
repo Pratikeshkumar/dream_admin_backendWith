@@ -8,7 +8,7 @@ const adminOccupationsApi = require('../../controllers/admin/admin_occupations')
 router.post('/addOccupations', adminAuth, adminOccupationsApi.addOccupations)
 router.get('/getOccupations/:page/:perPage', adminAuth, adminOccupationsApi.getOccupations)
 router.put('/updateOccupation/:id', adminAuth, adminOccupationsApi.updateOccupation)
-router.delete('/deleteOccupation/id', adminAuth, adminOccupationsApi.deleteOccupation)
+router.delete('/deleteOccupation/:id', adminAuth, adminOccupationsApi.deleteOccupation)
 
 
 

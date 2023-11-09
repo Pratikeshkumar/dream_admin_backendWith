@@ -52,6 +52,7 @@ router.post('/upload', upload.fields([{ name: "source", maxCount: 1 }]), userApi
 router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis2.userInfoById);
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
+router.get('/getOccupations',userApis2.getOccupations)
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
 

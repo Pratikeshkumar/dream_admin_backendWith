@@ -12,6 +12,7 @@ const addLanguage = async (req, res) => {
     logger.info('INFO -> LANGUAGE ADDING API CALLED');
     try {
         const { name, code } = req.body;
+        console.log(req.body)
 
         // Check if the required fields are provided
         if (!name || !code) {
@@ -62,8 +63,8 @@ const getLanguage = async (req, res) => {
         });
     } catch (error) {
         logger.error(error);
-        res.status(500).json({ message: 'Error generated while processing the request', error });
-    }
+        res.status(500).json({ message: 'Error generated while processing the request', error });
+}
 }
 
 

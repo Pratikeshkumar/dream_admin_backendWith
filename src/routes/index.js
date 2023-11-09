@@ -16,6 +16,7 @@ const topic = require('./topic')
 const live_stream = require('./live_stream')
 const promotion = require('./promotion')
 
+
 router.use("/users", users);
 router.use("/videos", videos);
 router.use("/comments", comments);

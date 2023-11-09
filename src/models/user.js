@@ -201,7 +201,6 @@ const User = sq.define('users', {
     type: DataTypes.JSON,
     allowNull: true
   }
-
 },
   {
     timestamps: false,

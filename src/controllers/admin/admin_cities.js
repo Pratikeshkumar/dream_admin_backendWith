@@ -10,6 +10,7 @@ const addCities = async (req, res) => {
     logger.info('INFO -> ADDING CITIES API CALLED');
     try {
         const {
+            id,
             name,
             state_id,
             state_code,
@@ -24,6 +25,7 @@ const addCities = async (req, res) => {
 
         // Create a new city
         const newCity = await City.create({
+          
             name,
             state_id,
             state_code,
@@ -47,7 +49,7 @@ const addCities = async (req, res) => {
 const getCities = async (req, res) => {
     logger.info('INFO -> GETTING CITIES API CALLED');
     try {
-        const { page = 1, perPage = 10 } = req.query;
+        const { page = 1, perPage = 30 } = req.query;
 
         // Calculate the offset based on the page and perPage values
         const offset = (page - 1) * perPage;
@@ -68,6 +70,24 @@ const getCities = async (req, res) => {
         res.status(500).json({ message: 'Error generated while processing your request', error });
     }
 }
+
+
+
+// const getCities = async (req, res) => {
+//     logger.info('INFO -> GETTING CITIES API CALLED');
+//     try {
+//         // Retrieve all cities without pagination
+//         const cities = await City.findAll();
+
+//         res.status(200).json({
+//             message: 'Cities retrieved successfully',
+//             data: cities,
+//         });
+//     } catch (error) {
+//         logger.error(error);
+//         res.status(500).json({ message: 'Error generated while processing your request', error });
+//     }
+// }
 
 const updateCities = async (req, res) => {
     logger.info('INFO -> UPDATING CITY API CALLED');

@@ -1,4 +1,19 @@
-const { User, Avatar, Transaction, Gift, Video, UserRelationship, Like, Message, UserInteraction, Language, Hobbies, VideoView, ProfileVisit } = require("../../models");
+const { 
+  User, 
+  Avatar, 
+  Transaction, 
+  Gift, 
+  Video, 
+  UserRelationship, 
+  Like, 
+  Message, 
+  UserInteraction, 
+  Language, 
+  Hobbies, 
+  VideoView, 
+  ProfileVisit,
+  Occupations
+ } = require("../../models");
 const fs = require('fs');
 const errorHandler = require("../../utils/errorObject");
 const { JWT_KEY } = process.env;
@@ -975,6 +990,7 @@ const addView = async (req, res) => {
       video_id,
       viewers_id
     } = req.body;
+    console.log(req.body,"body")
 
     let result = await VideoView.create({
       video_id,
@@ -1075,6 +1091,26 @@ const updatePicture = async (req, res) => {
   } catch (error) {
     console.log(error)
     res.status(500).json({ message: 'error generated while updating profile picture', error })
+  }
+}
+
+
+const getOccupations = async (req, res) => {
+  logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
+  try {
+      // Retrieve occupations from the database
+      const occupations = await Occupations.findAll();
+
+      // Check if any occupations were found
+      if (!occupations || occupations.length === 0) {
+          return res.status(404).json({ message: 'No occupations found' });
+      }
+
+      // Return the list of occupations
+      res.status(200).json({ occupations });
+  } catch (error) {
+      logger.error(error);
+      res.status(500).json({ message: 'Error generated while processing your request', error });
   }
 }
 
@@ -1246,5 +1282,6 @@ module.exports = {
   addView,
   addProfileVisit,
   updatePicture,
-  sendNotification
+  sendNotification,
+  getOccupations
 };

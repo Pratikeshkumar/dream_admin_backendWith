@@ -34,8 +34,9 @@ const PicturePost = require('./picture_post')
 const Occupations = require('./occupations')
 const Topic = require('./topic')
 const LiveSettings = require('./live_settings')
-const GiftListing = require('./gift_listing')
 const Promotion = require('./promotions')
+const GiftListing = require('./gift_listing')
+
 
 
 CommentRose.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
@@ -43,7 +44,7 @@ CommentRose.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentRose.belongsTo(Video, { foreignKey: 'video_id', as: 'comment_rose_video' });
 CommentRose.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' })
 
-Video.hasMany(CommentRose, { foreignKey: 'video_id', as: 'comment_rose_video', onDelete: 'CASCADE' });
+
 
 User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
@@ -51,9 +52,8 @@ User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
 Gift.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Gift.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
+Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 
-// Video.hasMany(Gift, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 
 
@@ -62,7 +62,7 @@ Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE'
 
 Like.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Like.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
+Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 
 
 Video.hasMany(VideoView, { foreignKey: 'video_id', as: 'views' })
@@ -75,7 +75,7 @@ VideoView.belongsTo(User)
 
 
 User.hasMany(Video, { foreignKey: "user_id" });
-Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes', onDelete: 'CASCADE' });
+Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes' });
 Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
@@ -87,8 +87,7 @@ PostComment.belongsTo(User, {
 })
 PostComment.belongsTo(Video, {
   foreignKey: 'video_id',
-  as: 'video',
-  onDelete: 'CASCADE'
+  as: 'video'
 })
 PostCommentReply.belongsTo(User, {
   foreignKey: 'user_id',
@@ -98,25 +97,22 @@ PostCommentReply.belongsTo(User, {
 PostCommentReply.belongsTo(Video, {
   foreignKey: 'video_id',
   as: 'video',
-  
 });
-// Video.hasMany(PostCommentReply, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 PostCommentReply.belongsTo(PostComment, {
   foreignKey: 'parent_comment_id',
   as: 'parentComment',
-  
 });
 
-PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies', onDelete: 'CASCADE' });
+PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies' });
 
-PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes', onDelete: 'CASCADE' });
+PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes' });
 CommentLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 CommentLike.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' });
 
-PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes', onDelete: 'CASCADE' });
+PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes' });
 CommentDisLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentDisLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentDisLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
@@ -176,11 +172,10 @@ VideoCity.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCity.belongsTo(City, { foreignKey: 'city_id', as: 'city' });
 VideoCountry.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCountry.belongsTo(Country, { foreignKey: 'countriesId', as: 'country' });
+User.hasMany(UserInteraction)
+UserInteraction.belongsTo(User)
 
 
-
-User.hasMany(UserInteraction, { foreignKey: 'user_id' });
-UserInteraction.belongsTo(User, { foreignKey: 'user_id' });
 
 
 User.hasMany(LiveSettings, { foreignKey: 'user_id', as: 'user' })
@@ -193,21 +188,7 @@ Promotion.belongsTo(User, { foreignKey: 'user_id' })
 Video.hasMany(Promotion, { foreignKey: 'video_id' })
 Promotion.belongsTo(Video, { foreignKey: 'video_id' })
 
-Video.hasMany(VideoView, { foreignKey: 'video_id', as: 'views' });
-VideoView.belongsTo(Video, { foreignKey: 'video_id', as: 'views' })
 
-
-
-Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments', onDelete: 'CASCADE' });
-PostComment.belongsTo(Video, { foreignKey: 'video_id' });
-
-
-
-User.hasMany(Promotion, { foreignKey: 'user_id' })
-Promotion.belongsTo(User, { foreignKey: 'user_id' })
-
-Video.hasMany(Promotion, { foreignKey: 'video_id' })
-Promotion.belongsTo(Video, { foreignKey: 'video_id' })
 
 module.exports = {
   Admin,
@@ -246,6 +227,6 @@ module.exports = {
   Occupations,
   Topic,
   LiveSettings,
-  GiftListing,
-  Promotion
+  Promotion,
+  GiftListing
 };

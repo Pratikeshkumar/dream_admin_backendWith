@@ -18,8 +18,6 @@ const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
 
 
-nms.run()
-testDbConnection();
 
 const tryConneect = async () => {
   await consumer.connect()
@@ -42,6 +40,10 @@ const listTopic = async () => {
 // listTopic();
 
 tryConneect()
+nms.run()
+testDbConnection();
+testRedisConnection()
+
 
 
 

@@ -40,6 +40,63 @@ const Promotion = sq.define(
         ending_date: {
             type: DataTypes.DATE,
             allowNull: false
+        },
+        way_to_promote: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        custom_audience: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: true
+        },
+        daily_total_budget_in_dollar: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        how_long_would_to_promote_in_days: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        number_of_like: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        number_of_followers: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        number_of_profile_visit: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        number_of_comments: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        gender: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        cities: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        countries: {
+            type: DataTypes.TEXT,
+            allowNull: true
+        },
+        audience_age: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        total_coin: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+        total_money_in_dollar: {
+            type: DataTypes.INTEGER,
+            allowNull: false
         }
     },
     {

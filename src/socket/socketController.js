@@ -1,23 +1,23 @@
 const { Message } = require('../models/index');
 const logger = require('../utils/logger');
 const chatHandler = require('./handlers/chat');
-const onlineDetector = require('./handlers/onlineDetector');
 const testing = require('./handlers/testing');
 const videoCall = require('./handlers/videoCall')
 const {
-  live_count
+  live_stream_view_handler
 } = require('./handlers/liveStream')
 
 const onlinePeopleList = [];
 
 module.exports = (io) => {
-  
+
   io.on('connection', (socket) => {
     console.log('New client connected');
 
     chatHandler(socket, io);
     videoCall(socket, io);
-    live_count(socket, io)
+
+    live_stream_view_handler(socket, io)
 
 
     socket.on('online-display', (data) => {

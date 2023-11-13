@@ -16,7 +16,6 @@ exports.userAuth = async (req, res, next) => {
     let userData = await User.findOne({
       where: { email: decoded.email }
     });
-    console.log(userData.users,"rrnewuser")
     userData = JSON.parse(JSON.stringify(userData));
     
 
@@ -30,6 +29,9 @@ exports.userAuth = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+
 
 exports.adminAuth = async (req, res, next) => {
   logger.info("AUTH: ADMIN AUTH MIDDLEWARE CALLED");

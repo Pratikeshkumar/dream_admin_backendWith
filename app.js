@@ -16,7 +16,7 @@ const cheerio = require('cheerio')
 const nms = require('./src/live_handler/index')
 const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
-
+const uuid = require('uuid')
 
 
 const tryConneect = async () => {

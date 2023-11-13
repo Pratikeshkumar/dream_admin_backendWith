@@ -4,6 +4,7 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const { User } = require('../models')
 const { JWT_KEY } = process.env;
+const { redis } = require('../config/redis')
 
 
 

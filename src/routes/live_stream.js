@@ -10,6 +10,7 @@ const { userAuth } = require('../middlewares/auth');
 router.post('/addLiveSettings', userAuth, live_streamApi.addLiveSettings)
 router.post('/updateActiveLive', userAuth, live_streamApi.updateActiveLive)
 router.get('/getAllActiveLiveStream/:pageNo/:pageSize', live_streamApi.getAllActiveLiveStream)
+router.get('/getAllLiveStreamGift/:categories', live_streamApi.getAllLiveStreamGift)
 
 
 

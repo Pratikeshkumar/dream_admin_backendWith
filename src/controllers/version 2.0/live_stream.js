@@ -1,5 +1,9 @@
 const logger = require("../../utils/logger")
-const { LiveSettings, User } = require('../../models')
+const {
+    LiveSettings,
+    User,
+    liveStreamGiftStore
+} = require('../../models')
 const { kafka, producer, admin } = require('../../config/kafka')
 const { redis } = require('../../config/redis')
 
@@ -153,6 +157,28 @@ const getAllActiveLiveStream = async (req, res) => {
 
 
 
+const getAllLiveStreamGift = async (req, res) => {
+    logger.info('INFO -> GETTING ALL LIVE STREAM API CALLED')
+    try {
+        const { categories } = req.params;
+
+
+        let result = await liveStreamGiftStore.findAll({
+            where: { category: categories }
+        })
+        result = JSON.parse(JSON.stringify(result))
+
+        res.status(200).json({
+            success: true,
+            gift: result
+        })
+
+    } catch (error) {
+        logger.error(error)
+        res.status(500).json({ message: 'Error generated while processing your request' })
+    }
+}
+
 
 
 
@@ -164,5 +190,6 @@ const getAllActiveLiveStream = async (req, res) => {
 module.exports = {
     addLiveSettings,
     updateActiveLive,
-    getAllActiveLiveStream
+    getAllActiveLiveStream,
+    getAllLiveStreamGift
 }

@@ -10,9 +10,8 @@ const errorHandler = require('./src/middlewares/errorHandler');
 const log = require('./src/utils/logger');
 const AWS = require('aws-sdk')
 const { s3 } = require('./src/config/aws')
-const { Avatar, User, Hobbies, PostComment, Language, Topic } = require('./src/models')
+const { liveStreamGiftStore } = require('./src/models')
 const axios = require('axios')
-const cheerio = require('cheerio')
 const nms = require('./src/live_handler/index')
 const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
@@ -43,12 +42,6 @@ tryConneect()
 nms.run()
 testDbConnection();
 testRedisConnection()
-
-
-
-
-
-
 
 
 

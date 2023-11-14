@@ -36,6 +36,7 @@ const Topic = require('./topic')
 const LiveSettings = require('./live_settings')
 const Promotion = require('./promotions')
 const GiftListing = require('./gift_listing')
+const liveStreamGiftStore = require('./liveStreamGiftStore')
 
 
 
@@ -228,5 +229,6 @@ module.exports = {
   Topic,
   LiveSettings,
   Promotion,
-  GiftListing
+  GiftListing,
+  liveStreamGiftStore
 };

@@ -4,7 +4,11 @@ const chatHandler = require('./handlers/chat');
 const testing = require('./handlers/testing');
 const videoCall = require('./handlers/videoCall')
 const {
-  live_stream_view_handler
+  live_stream_view_handler,
+  live_stream_like_handler,
+  live_stream_rose_handler,
+  live_stream_comment_handler,
+  live_stream_gift_handler
 } = require('./handlers/liveStream')
 
 const onlinePeopleList = [];
@@ -18,6 +22,10 @@ module.exports = (io) => {
     videoCall(socket, io);
 
     live_stream_view_handler(socket, io)
+    live_stream_like_handler(socket, io)
+    live_stream_rose_handler(socket, io)
+    live_stream_comment_handler(socket, io)
+    live_stream_gift_handler(socket, io)
 
 
     socket.on('online-display', (data) => {

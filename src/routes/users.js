@@ -28,6 +28,7 @@ router.get('/searchLanguage/:search_text', userApis2.searchLanguage)
 router.get('/getAllHobbiesList/:page_no/:page_size', userApis2.getAllHobbiesList)
 router.get('/searchHobbies/:search_text', userApis2.searchHobbies)
 router.get('/sendNotification', userApis2.sendNotification)
+router.post('/getUserShortInfo', userApis2.getUserShortInfo)
 
 
 /************************************* VERSION 2.0 */
@@ -55,6 +56,7 @@ router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
 router.get('/getOccupations',userApis2.getOccupations)
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
+
 
 
 /****************************** AVATAR */

@@ -1,19 +1,19 @@
-const { 
-  User, 
-  Avatar, 
-  Transaction, 
-  Gift, 
-  Video, 
-  UserRelationship, 
-  Like, 
-  Message, 
-  UserInteraction, 
-  Language, 
-  Hobbies, 
-  VideoView, 
+const {
+  User,
+  Avatar,
+  Transaction,
+  Gift,
+  Video,
+  UserRelationship,
+  Like,
+  Message,
+  UserInteraction,
+  Language,
+  Hobbies,
+  VideoView,
   ProfileVisit,
   Occupations
- } = require("../../models");
+} = require("../../models");
 const fs = require('fs');
 const errorHandler = require("../../utils/errorObject");
 const { JWT_KEY } = process.env;
@@ -990,7 +990,7 @@ const addView = async (req, res) => {
       video_id,
       viewers_id
     } = req.body;
-    console.log(req.body,"body")
+    console.log(req.body, "body")
 
     let result = await VideoView.create({
       video_id,
@@ -1098,19 +1098,19 @@ const updatePicture = async (req, res) => {
 const getOccupations = async (req, res) => {
   logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
   try {
-      // Retrieve occupations from the database
-      const occupations = await Occupations.findAll();
+    // Retrieve occupations from the database
+    const occupations = await Occupations.findAll();
 
-      // Check if any occupations were found
-      if (!occupations || occupations.length === 0) {
-          return res.status(404).json({ message: 'No occupations found' });
-      }
+    // Check if any occupations were found
+    if (!occupations || occupations.length === 0) {
+      return res.status(404).json({ message: 'No occupations found' });
+    }
 
-      // Return the list of occupations
-      res.status(200).json({ occupations });
+    // Return the list of occupations
+    res.status(200).json({ occupations });
   } catch (error) {
-      logger.error(error);
-      res.status(500).json({ message: 'Error generated while processing your request', error });
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
   }
 }
 
@@ -1246,6 +1246,29 @@ const sendNotification = async (req, res) => {
   }
 }
 
+const getUserShortInfo = async (req, res) => {
+  logger.info('INFO -> GETTING USER SHORT INFO API CALLED')
+  try {
+    const { ids } = req.body;
+
+    let result = await User.findAll({
+      attributes: ['id', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+
+}
 
 
 
@@ -1283,5 +1306,6 @@ module.exports = {
   addProfileVisit,
   updatePicture,
   sendNotification,
-  getOccupations
+  getOccupations,
+  getUserShortInfo
 };

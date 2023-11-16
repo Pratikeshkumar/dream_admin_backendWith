@@ -17,7 +17,6 @@ const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
 const uuid = require('uuid')
 
-
 const tryConneect = async () => {
   await consumer.connect()
   const producer = kafka.producer()
@@ -45,14 +44,12 @@ testRedisConnection()
 
 
 
+const changdata = async () => {
+  const result = await liveStreamGiftStore.update({ category: 'Economic' }, { where: { id: 22 } })
+}
 
 
-
-
-
-
-
-
+// changdata()
 
 
 

@@ -8,7 +8,9 @@ const {
   live_stream_like_handler,
   live_stream_rose_handler,
   live_stream_comment_handler,
-  live_stream_gift_handler
+  live_stream_gift_handler,
+  live_stream_share_handler,
+  live_join_request_handeler
 } = require('./handlers/liveStream')
 
 const onlinePeopleList = [];
@@ -26,6 +28,8 @@ module.exports = (io) => {
     live_stream_rose_handler(socket, io)
     live_stream_comment_handler(socket, io)
     live_stream_gift_handler(socket, io)
+    live_stream_share_handler(socket, io)
+    live_join_request_handeler(socket, io)
 
 
     socket.on('online-display', (data) => {

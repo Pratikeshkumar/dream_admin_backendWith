@@ -13,13 +13,16 @@ const live_stream_view_handler = async (socket, io) => {
         data.viewers_id = uuid.v4();
         data.createdAt = new Date()
         let active_data = JSON.stringify(data)
-        const live_stream_view_key = `live_stream_view:${data?.live_stream_id}`
-        await redis.lpush(live_stream_view_key, active_data)
         const live_stream_active_view_key = `live_stream_active_view:${data.live_stream_id}`
-        await redis.lpush(live_stream_active_view_key, data?.user_id)
         const result = await redis.lrange(live_stream_active_view_key, 0, -1)
-        const clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size;
-        io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom })
+        if (!result?.includes(data?.user_id)) {
+            const live_stream_view_key = `live_stream_view:${data?.live_stream_id}`
+            await redis.lpush(live_stream_view_key, active_data)
+            await redis.lpush(live_stream_active_view_key, data?.user_id)
+            const clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size;
+            io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data })
+        }
+
     })
 
 
@@ -91,8 +94,29 @@ const live_stream_comment_handler = async (socket, io) => {
 
 }
 
+const live_stream_share_handler = async (socket, io) => {
+    socket.on('live_stream_share_handler', async (data) => {
+        let roomId = `live_stream:${data?.live_stream_id}`;
+        data.live_share_id = uuid.v4()
+        data.timestamp = new Date()
+        const share_data = JSON.stringify(data)
+        const key = `live_stream_share:${data?.live_stream_id}`
+        await redis.lpush(key, share_data)
+        io.to(roomId).emit('live_stream_share', data)
+    })
+}
 
-
+const live_join_request_handeler = async (socket, io) => {
+    socket.on('live_join_request_handeler', async (data) => {
+        let roomId = `live_stream:${data?.live_stream_id}`;
+        data.live_join_request_id = uuid.v4()
+        data.timestamp = new Date()
+        const join_request_data = JSON.stringify(data)
+        const key = `live_join_request:${data?.live_stream_id}`
+        await redis.lpush(key, join_request_data)
+        io.to(roomId).emit('live_join_request', data)
+    })
+}
 
 
 module.exports = {
@@ -100,5 +124,7 @@ module.exports = {
     live_stream_like_handler,
     live_stream_rose_handler,
     live_stream_comment_handler,
-    live_stream_gift_handler
+    live_stream_gift_handler,
+    live_stream_share_handler,
+    live_join_request_handeler
 }

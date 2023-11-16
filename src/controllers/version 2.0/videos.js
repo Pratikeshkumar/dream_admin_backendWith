@@ -1,4 +1,6 @@
-const { Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost, VideoView } = require("../../models");
+const {
+  Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost, VideoView, VideoReport
+} = require("../../models");
 const cloudinary = require("../../config/cloudinary");
 const fs = require("fs");
 const logger = require("../../utils/logger");
@@ -451,7 +453,7 @@ const getAllUserVideos = async (req, res, next) => {
       totalVideos: videos.count,
       currentPage: page,
       pageSize: pageSize,
-      
+
     });
   } catch (error) {
     logger.error(error);
@@ -1053,11 +1055,36 @@ const getAllPicturePost = async (req, res) => {
   }
 }
 
+const makeReport = async () => {
+  logger.info('INFO -> MAKE REPORT API CALLED')
+  try {
+    const {
+      videoId,
+      reporterId,
+      reason,
+      description
+    } = req.body;
 
+    let result = await VideoReport.create({
+      videoId,
+      reporterId,
+      reason,
+      description
+    })
 
+    result = JSON.parse(JSON.stringify(result))
 
+    
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
 
-
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading picture post', error })
+  }
+}
 
 
 
@@ -1088,9 +1115,9 @@ module.exports = {
   videoStats,
   getMyVideos,
   uploadPicturePost,
-  getAllPicturePost
+  getAllPicturePost,
+  makeReport
 };
 
 
-const user = require('assert')
 

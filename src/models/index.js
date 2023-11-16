@@ -37,6 +37,7 @@ const LiveSettings = require('./live_settings')
 const Promotion = require('./promotions')
 const GiftListing = require('./gift_listing')
 const liveStreamGiftStore = require('./liveStreamGiftStore')
+const VideoReport = require('./video_report')
 
 
 
@@ -191,6 +192,13 @@ Promotion.belongsTo(Video, { foreignKey: 'video_id' })
 
 
 
+User.hasMany(VideoReport, { foreignKey: 'reporterId' })
+VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
+Video.hasMany(VideoReport, { foreignKey: 'videoId' })
+VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
+
+
+
 module.exports = {
   Admin,
   User,
@@ -230,5 +238,6 @@ module.exports = {
   LiveSettings,
   Promotion,
   GiftListing,
-  liveStreamGiftStore
+  liveStreamGiftStore,
+  VideoReport
 };

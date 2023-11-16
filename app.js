@@ -17,39 +17,12 @@ const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
 const uuid = require('uuid')
 
-const tryConneect = async () => {
-  await consumer.connect()
-  const producer = kafka.producer()
-  await producer.connect()
-  console.log("producer conneted successfully ")
-}
 
-const listTopic = async () => {
-  try {
-    await admin.connect();
-    const topics = await admin.listTopics()
-    console.log(topics)
-    await admin.disconnect();
-  } catch (error) {
-    console.error('Error listing Kafka topics:', error);
-  }
-}
-
-// listTopic();
-
-tryConneect()
 nms.run()
 testDbConnection();
 testRedisConnection()
 
 
-
-const changdata = async () => {
-  const result = await liveStreamGiftStore.update({ category: 'Economic' }, { where: { id: 22 } })
-}
-
-
-// changdata()
 
 
 

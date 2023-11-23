@@ -1,11 +1,21 @@
 const uuid = require('uuid')
 const { redis } = require('../../config/redis')
 const { promisify } = require('util')
-
+const { User } = require('../../models')
+const logger = require('../../utils/logger')
 
 
 
 const live_stream_view_handler = async (socket, io) => {
+
+    socket.on('owner_joining_the_room', async (data) => {
+        let roomId = `live_stream:${data?.id}`;
+        socket.join(roomId)
+        console.log('roomId', roomId)
+    })
+
+
+
 
     socket.on('live_stream_view_join', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
@@ -106,17 +116,56 @@ const live_stream_share_handler = async (socket, io) => {
     })
 }
 
-const live_join_request_handeler = async (socket, io) => {
-    socket.on('live_join_request_handeler', async (data) => {
+
+
+const live_join_request_handler = async (socket, io) => {
+
+    socket.on('live_join_request_handler', async (data) => {
+        logger.info('INFO -> JOIN REQUEST HANDLER API CALLED');
         let roomId = `live_stream:${data?.live_stream_id}`;
-        data.live_join_request_id = uuid.v4()
-        data.timestamp = new Date()
-        const join_request_data = JSON.stringify(data)
-        const key = `live_join_request:${data?.live_stream_id}`
-        await redis.lpush(key, join_request_data)
-        io.to(roomId).emit('live_join_request', data)
-    })
+
+        console.log('roomId', roomId)
+        data.live_join_request_id = uuid.v4();
+        data.timestamp = new Date();
+
+        // Check if user details are in the cache
+        const userKey = `user:${data.user_id}`;
+        let user = await redis.get(userKey);
+
+        if (!user) {
+            // Retrieve user details using user_id
+            user = await User.findByPk(data?.user_id, {
+                attributes: ['id', 'username', 'nickname', 'profile_pic'],
+            });
+
+            // Cache user details using Redis
+            const user_data = JSON.stringify(user);
+            await redis.set(userKey, user_data);
+        } else {
+            user = JSON.parse(user);
+        }
+
+        const join_request_data = JSON.stringify(data);
+        const join_request_key = `live_join_request:${data?.live_stream_id}`;
+        await redis.lpush(join_request_key, join_request_data);
+        // console.log({...data, user})
+        io.to(roomId).emit('live_join_request_notification', { ...data, user });
+    });
+};
+
+
+const live_stream_join_request_accept_handler = async (socket, io) => {
+    socket.on('live_stream_join_request_accept_handler', async (data) => {
+        let roomId = `live_stream:${data?.live_stream_id}`;
+        const join_request_key = `live_join_request_accepted:${data?.live_stream_id}`;
+        const join_request_data = JSON.stringify(data);
+        await redis.lpush(join_request_key, join_request_data);
+        io.to(roomId).emit('live_stream_join_request_accept', data);
+    });
 }
+
+
+
 
 
 module.exports = {
@@ -126,5 +175,6 @@ module.exports = {
     live_stream_comment_handler,
     live_stream_gift_handler,
     live_stream_share_handler,
-    live_join_request_handeler
+    live_join_request_handler,
+    live_stream_join_request_accept_handler
 }

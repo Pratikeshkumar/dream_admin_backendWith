@@ -1,4 +1,4 @@
-const { Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost } = require("../../models");
+const { Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost,VideoReport} = require("../../models");
 const cloudinary = require("../../config/cloudinary");
 const fs = require("fs");
 const logger = require("../../utils/logger");
@@ -1045,18 +1045,36 @@ const getAllPicturePost = async (req, res) => {
 }
 
 
+const makeVideoReport = async (req, res) => {
+  logger.info('INFO -> MAKE REPORT API CALLED')
+  try {
+    const {
+      videoId,
+      reporterId,
+      reason,
+      description
+    } = req.body;
 
+    let result = await VideoReport.create({
+      videoId,
+      reporterId,
+      reason,
+      description
+    })
 
+    result = JSON.parse(JSON.stringify(result))
 
+    
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
 
-
-
-
-
-
-
-
-
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading Report ', error })
+  }
+}
 
 
 module.exports = {
@@ -1079,7 +1097,8 @@ module.exports = {
   videoStats,
   getMyVideos,
   uploadPicturePost,
-  getAllPicturePost
+  getAllPicturePost,
+  makeVideoReport
 };
 
 

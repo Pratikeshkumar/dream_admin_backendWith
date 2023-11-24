@@ -34,6 +34,11 @@ const PicturePost = require('./picture_post')
 const Occupations = require('./occupations')
 const GiftListing = require('./gift_listing')
 const Promotion = require('./promotions')
+const SuperadminTransaction = require('./superadmin_transaction');
+const UserAdminTransaction = require('./admin_user_transaction')
+const SuperAdminUserTransaction= require('./superAdmin_user_app_transaction')
+const VideoReport = require('./VideoReport')
+
 
 
 CommentRose.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
@@ -71,6 +76,9 @@ User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKe
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
 
 
+
+PicturePost.belongsTo(User, { foreignKey: 'user_id' });
+
 PostComment.belongsTo(User, {
   foreignKey: 'user_id',
   as: 'user'
@@ -88,14 +96,14 @@ PostCommentReply.belongsTo(User, {
 PostCommentReply.belongsTo(Video, {
   foreignKey: 'video_id',
   as: 'video',
-  
+
 });
 // Video.hasMany(PostCommentReply, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 PostCommentReply.belongsTo(PostComment, {
   foreignKey: 'parent_comment_id',
   as: 'parentComment',
-  
+
 });
 
 PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies', onDelete: 'CASCADE' });
@@ -189,6 +197,28 @@ Promotion.belongsTo(User, { foreignKey: 'user_id' })
 Video.hasMany(Promotion, { foreignKey: 'video_id' })
 Promotion.belongsTo(Video, { foreignKey: 'video_id' })
 
+
+Admin.hasMany(SuperadminTransaction, {
+  foreignKey: 'receiver_id',
+  as: 'transactions',
+});
+
+SuperadminTransaction.belongsTo(Admin, {
+  foreignKey: 'receiver_id',
+});
+
+UserAdminTransaction.belongsTo(Admin, { foreignKey: 'sender_id', as: 'sender' });
+UserAdminTransaction.belongsTo(Admin, { foreignKey: 'receiver_id', as: 'receiver' });
+SuperAdminUserTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+User.hasMany(SuperAdminUserTransaction, { foreignKey: 'receiver_id', as: 'superadminTransactions' });
+
+VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
+Video.hasMany(VideoReport, { foreignKey: 'videoId' })
+VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
+
+Transaction.belongsTo(User, { foreignKey: 'user_id'});
+
+
 module.exports = {
   Admin,
   User,
@@ -225,5 +255,8 @@ module.exports = {
   PicturePost,
   Occupations,
   GiftListing,
-  Promotion
+  Promotion,
+  SuperadminTransaction,
+  UserAdminTransaction,
+  VideoReport
 };

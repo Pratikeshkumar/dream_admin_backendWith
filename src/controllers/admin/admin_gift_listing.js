@@ -162,26 +162,6 @@ const addGifts_listing = async (req, res) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const deleteGifts_listing = async (req, res) => {
   logger.info('INFO -> DELETING GIFT_LISTING API CALLED');
   try {

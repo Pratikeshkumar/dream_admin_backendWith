@@ -8,8 +8,8 @@
 
 
 const logger = require("../../utils/logger");
-const { User,Video ,UserInteraction,VideoView,PostComment} = require("../../models");
-const { Sequelize ,Op} = require('sequelize');
+const { User, Video, UserInteraction, VideoView, PostComment, PicturePost } = require("../../models");
+const { Sequelize, Op } = require('sequelize');
 
 
 // const getUsers = async (req, res) => {
@@ -173,11 +173,11 @@ const getPremiumUsers = async (req, res) => {
 //         },
 //         {
 //           model: UserInteraction,
-          
+
 
 //         },
-       
-        
+
+
 //       ],
 //     });
 
@@ -246,11 +246,35 @@ const getPremiumUsers = async (req, res) => {
 
 
 
+// const updateUserActiveStatus = async (req, res) => {
+//   const userId = req.params.id;
+//   const newActiveStatus = req.body.isActive;
+//   console.log(newActiveStatus, "newActiveStatus")
+
+//   try {
+//     const user = await User.findByPk(userId);
+
+//     if (!user) {
+//       return res.status(404).json({ error: 'User not found' });
+//     }
+
+//     // Update the user's active status
+//     user.active = newActiveStatus;
+//     await user.save();
+
+//     return res.status(200).json(user); // You can return the updated user object if needed.
+//   } catch (error) {
+//     console.error('Error updating user active status:', error);
+//     return res.status(500).json({ error: 'Internal server error' });
+//   }
+// };
+
+
 const updateUserActiveStatus = async (req, res) => {
   const userId = req.params.id;
   const newActiveStatus = req.body.isActive;
-  console.log(newActiveStatus,"newActiveStatus")
-
+  const userRole = req.userData.role; 
+  console.log(userRole)
   try {
     const user = await User.findByPk(userId);
 
@@ -258,16 +282,54 @@ const updateUserActiveStatus = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Update the user's active status
+    // Determine blocking duration based on the user's role
+    let blockDurationInDays = 0;
+
+    switch (userRole) {
+      case 'superadmin':
+        blockDurationInDays = 30;
+        break;
+      case 'admin':
+        blockDurationInDays = 15;
+        break;
+      case 'manager':
+        blockDurationInDays = 3;
+        break;
+      default:
+        return res.status(400).json({ error: 'Invalid user role' });
+    }
+
+    // Check if the user is already blocked
+    if (user.active === 0) {
+      return res.status(400).json({ error: 'User is already blocked' });
+    }
+
+    // Set the active status to 0 (blocked) or 1 (active) based on req.body.isActive
     user.active = newActiveStatus;
+
     await user.save();
 
-    return res.status(200).json(user); // You can return the updated user object if needed.
+    // If blocking the user, schedule a task to unblock the user after the specified duration
+    if (!newActiveStatus) {
+      setTimeout(async () => {
+        user.active = 1; // Set the active status to unblock the user
+        await user.save();
+        console.log(`User ${user.id} unblocked.`);
+      }, blockDurationInDays * 24 * 60 * 60 * 1000);
+    }
+
+    return res.status(200).json({ message: 'User status updated successfully' });
   } catch (error) {
     console.error('Error updating user active status:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+module.exports = updateUserActiveStatus;
+
+
+
+
 
 
 const getBlockedUsers = async (req, res) => {
@@ -349,75 +411,24 @@ const updateUserStatus = async (req, res) => {
 const deleteUsers = async (req, res) => {
   logger.info('INFO -> DELETING AllUser API CALLED');
   try {
-      const { id } = req.params; // Assuming you have an 'id' parameter in the route
+    const { id } = req.params; // Assuming you have an 'id' parameter in the route
 
-      // Find the hobby by ID
-      const existingUser = await User.findByPk(id);
+    // Find the hobby by ID
+    const existingUser = await User.findByPk(id);
 
-      if (!existingUser) {
-          return res.status(404).json({ message: 'User not found' });
-      }
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-     
-      await existingUser.destroy();
 
-      res.status(200).json({ message: 'User deleted successfully' });
+    await existingUser.destroy();
+
+    res.status(200).json({ message: 'User deleted successfully' });
   } catch (error) {
-      logger.error(error);
-      res.status(500).json({ message: 'Error generated while processing your request', error });
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
   }
 }
-// const getUsers = async (req, res) => {
-//   logger.info("INFO -> GETTING USERS API CALLED");
-
-//   // Define pagination parameters
-//   const page = req.query.page || 1; // Default to page 1 if not specified
-//   console.log(req.query.page,"page")
-//   const itemsPerPage = 10; // Number of users per page
-
-//   try {
-//     // Calculate the offset to skip the appropriate number of items
-//     const offset = (page - 1) * itemsPerPage;
-
-//     // Retrieve users with associated videos and interactions, applying pagination
-//     const users = await User.findAll({
-//       include: [
-//         // {
-//         //   model: Video,
-//         // },
-//         {
-//           model: UserInteraction,
-//         },
-//       ],
-//       offset, // Skip the appropriate number of items
-//       limit: itemsPerPage, // Limit the number of items per page
-//     });
-
-//     // Count all users (for total count, not just the current page)
-//     const totalUsers = await User.count();
-
-//     // Prepare response data
-//     const response = {
-//       users,
-//       pagination: {
-//         currentPage: page,
-//         totalPages: Math.ceil(totalUsers / itemsPerPage),
-//         totalUsers,
-//         itemsPerPage,
-//       },
-//     };
-
-//     // Send the response as JSON
-//     res.json(response);
-//   } catch (error) {
-//     console.error("Error fetching users:", error);
-//     res.status(500).json({ error: "Internal Server Error" });
-//   }
-// };
-
-
-
-
 
 const getUsers = async (req, res) => {
   logger.info("INFO -> GETTING USERS API CALLED");
@@ -491,10 +502,10 @@ const getUsersVideo = async (req, res) => {
         {
           model: Video,
           as: 'videos',
-           include: [
+          include: [
             {
-              model: PostComment, 
-              as: 'comments', 
+              model: PostComment,
+              as: 'comments',
             },
           ],
         },
@@ -503,13 +514,13 @@ const getUsersVideo = async (req, res) => {
 
     if (userVideos) {
       const videos = userVideos.videos;
-      
+
       const viewCounts = await Promise.all(videos.map(async (video) => {
         const viewCount = await VideoView.count({
           where: { video_id: video.id },
         });
         const comments = video.comments;
-        return { ...video.dataValues, viewCount,comments };
+        return { ...video.dataValues, viewCount, comments };
       }));
 
       res.json(viewCounts);
@@ -594,19 +605,67 @@ const sendGifts = async (req, res, next) => {
 }
 
 
+// const get_user_photo_post = async (req, res) => {
+//   try {
+//     const post = await PicturePost.findAll({
+//       order: [['createdAt', 'DESC']],
+//     });
+//     res.status(200).json({
+//       post,
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ error: 'Error generating the response' });
+//   }
+// };
+const get_user_photo_post = async (req, res) => {
+  try {
+    console.log(req.params.user_id,"reqBody")
+    const user_id = req.params.user_id; // Assuming you pass the user ID in the URL parameters
 
+    const photos = await PicturePost.findAll({
+      where: {
+        user_id: user_id,
+      },
+      order: [['createdAt', 'DESC']],
+    });
 
+    res.status(200).json({
+      photos: photos,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error generating the response' });
+  }
+};
 
+ const changeUserAccount_type = async (req, res) => {
+  try {
+ 
+    const userId = req.params.id;
+   
+    const { account_type } = req.body;
+    console.log(userId,account_type,"checking")
+   
+    // Find the user by ID
+    const existingUser = await User.findByPk(userId);
 
+    if (!existingUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
+    // Update the account type
+    existingUser.account_type = account_type;
 
+    // Save the updated user to the database
+    await existingUser.save();
 
-
-
-
-
-
-
+    res.status(200).json({ message: 'Account type updated successfully', data: existingUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+}
 
 
 
@@ -620,6 +679,9 @@ module.exports = {
   getUsersVideo,
   sendGifts,
   getBasicUsers,
-  getPremiumUsers
+  getPremiumUsers,
+  get_user_photo_post,
+  changeUserAccount_type
+
 
 };

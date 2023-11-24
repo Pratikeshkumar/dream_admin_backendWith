@@ -230,11 +230,75 @@ const userInfoById = async (req, res, next) => {
     return next(error);
   }
 };
+// const userInfoById = async (req, res, next) => {
+//   try {
+//     const { user_id } = req.params;
 
+//     const user = await User.findOne({
+//       attributes: {
+//         exclude: ['password']
+//       },
+//       where: { id: user_id },
+//       include: [
+//         {
+//           model: Video,
+//           as: 'videos',
+//           attributes: ['id', 'description', 'video', 'thum', 'diamond_value', 'like', 'created'],
+//           include: [
+//             {
+//               model: VideoView,
+//               as: 'views',
+//               attributes: ['view'],
+//             },
+//           ],
+//         },
+//         {
+//           model: User,
+//           as: 'Followers',
+//           attributes: ['id', 'username'],
+//         },
+//         {
+//           model: User,
+//           as: 'Following',
+//           attributes: ['id', 'username'],
+//         },
+//       ],
+//     });
 
+//     if (!user) {
+//       throw errorHandler("User not found", "notFound");
+//     }
 
+//     const liked_video = await Like.findAll({
+//       where: { sender_id: user_id },
+//       include: [
+//         {
+//           model: Video,
+//           as: 'video',
+//           attributes: ['id', 'description', 'video', 'thum', 'diamond_value', 'like', 'created'],
+//         },
+//         {
+//           model: User,
+//           as: 'receiver',
+//           attributes: ['id', 'username'],
+//         },
+//       ],
+//     });
 
+//     // Calculate total views for the user's videos
+//     const totalViews = user.videos.reduce((sum, video) => {
+//       if (video.views && video.views.length > 0) {
+//         sum += video.views[0].view; // Assuming each video has only one associated view
+//       }
+//       return sum;
+//     }, 0);
 
+//     return res.status(200).json({ user, liked_video, totalViews });
+//   } catch (error) {
+//     console.error('Error fetching user information:', error);
+//     return next(error);
+//   }
+// };
 
 const updateUser = async (req, res, next) => {
   logger.info("VERSION 2.0 -> USER: USER UPDATE API CALLED");

@@ -38,6 +38,9 @@ router.get("/getAllPicturePost/:user_id", videoApis2.getAllPicturePost);
 router.post("/like/:video_id", userAuth, validate(videoValidation.likeVideo), videoApis2.likeVideo);
 router.post("/comment/:video_id", userAuth, validate(videoValidation.commentVideo), videoApis2.commentVideo);
 router.post("/replyComment/:comment_id", userAuth, validate(videoValidation.replyComment), videoApis2.replyComment);
+
+router.post("/makeVideoReport", userAuth,videoApis2.makeVideoReport);
+
 router.get("/involvedVideos", userAuth, videoApis2.userInvolvedVideos);
 router.get("/allComments/:video_id", userAuth, validate(videoValidation.allComments), videoApis2.allComments);
 router.post('/giftVideo', userAuth, validate(videoValidation.giftVideo), videoApis2.giftVideo);

@@ -164,6 +164,83 @@ const deleteAvatar = async (req, res) => {
   }
 };
 
+
+// const addAvatarNew = async (req, res) => {
+//   logger.info("INFO -> ADDING AVATAR API CALLED");
+//   try {
+//     upload.fields([{ name: 'image', maxCount: 1 }])(req, res, async (err) => {
+//       if (err) {
+//         logger.error("Error uploading avatar image:", err);
+//         return res.status(500).json({ message: "Error uploading avatar image", error: err });
+//       }
+
+//       const avatarImage = req.files['image'][0];
+
+//       // Determine the category path for the avatar image in the S3 bucket
+//       const avatarCategoryPath = 'avatar_images';
+      
+//       // Construct the path where the image will be stored in the S3 bucket
+//       const avatarKey = `${avatarCategoryPath}/${avatarImage.filename}`;
+
+//       const uploadAvatar = {
+//         Bucket: 'your-s3-bucket-name',
+//         Key: avatarKey,
+//         Body: fs.createReadStream(avatarImage.path),
+//         ACL: 'public-read', // Set the appropriate ACL based on your requirements
+//       };
+
+//       const s3Upload = () => {
+//         return new Promise((resolve, reject) => {
+//           s3.upload(uploadAvatar, (uploadErr, data) => {
+//             if (uploadErr) {
+//               reject(uploadErr);
+//             } else {
+//               resolve(data);
+//             }
+//           });
+//         });
+//       };
+
+//       try {
+//         const s3Data = await s3Upload();
+//         logger.info('Avatar uploaded successfully:', s3Data.Location);
+
+//         // Delete the local file
+//         fs.unlink(avatarImage.path, (unlinkErr) => {
+//           if (unlinkErr) {
+//             logger.error('Error deleting local avatar file:', unlinkErr);
+//           } else {
+//             logger.info('Local avatar file deleted:');
+//           }
+//         });
+
+//         // Create a new avatar entry in the database with the S3 URL
+//         const newAvatar = await Avatar.create({
+//           avatar_url: s3Data.Location,
+//         });
+
+//         res.status(201).json({ message: "Avatar added successfully", data: newAvatar });
+//       } catch (uploadError) {
+//         logger.error('Error uploading avatar to S3:', uploadError);
+//         res.status(500).json({ message: "Error uploading avatar to S3", error: uploadError });
+//       }
+//     });
+//   } catch (error) {
+//     logger.error(error);
+//     res.status(500).json({
+//       message: "Error generated while processing your request",
+//       error,
+//     });
+//   }
+// };
+
+
+
+
+
+
+
+
 module.exports = {
   addAvatar,
   getAvatars,

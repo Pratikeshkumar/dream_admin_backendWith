@@ -155,6 +155,7 @@ const live_join_request_handler = async (socket, io) => {
 
 
 const live_stream_join_request_accept_handler = async (socket, io) => {
+    console.log('new data are displaying here for many things')
     socket.on('live_stream_join_request_accept_handler', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
         const join_request_key = `live_join_request_accepted:${data?.live_stream_id}`;

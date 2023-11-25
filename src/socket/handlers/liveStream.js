@@ -30,7 +30,8 @@ const live_stream_view_handler = async (socket, io) => {
             const live_stream_view_key = `live_stream_view:${data?.live_stream_id}`
             await redis.lpush(live_stream_view_key, active_data)
             await redis.lpush(live_stream_active_view_key, data?.user_id)
-            const guests = await redis.lrange(join_request_key, 0, -1)
+            let guests = await redis.lrange(join_request_key, 0, -1)
+            guests = JSON.parse(guests)
             const clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size;
             io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests })
         }

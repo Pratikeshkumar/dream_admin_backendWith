@@ -3,6 +3,7 @@ const { JWT_KEY } = process.env;
 const { User, Admin } = require("../models");
 const errorHandler = require('../utils/errorObject');
 const logger = require('../utils/logger');
+const { redis } = require('../config/redis')
 
 exports.userAuth = async (req, res, next) => {
   logger.info("AUTH: USER AUTH MIDDLEWARE CALLED");
@@ -12,12 +13,21 @@ exports.userAuth = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     const decoded = jwt.verify(token, JWT_KEY);
 
+    // Try to get user data from Redis cache
+    let userData = await redis.get(decoded.email);
 
-    let userData = await User.findOne({
-      where: { email: decoded.email }
-    });
-    userData = JSON.parse(JSON.stringify(userData));
-    
+    if (userData) {
+      // Parse user data from JSON string to object
+      userData = JSON.parse(userData);
+    } else {
+      // If user data is not in Redis cache, get it from the database
+      userData = await User.findOne({
+        where: { email: decoded.email }
+      });
+
+      // Store user data in Redis cache for future requests
+      await redis.set(decoded.email, JSON.stringify(userData));
+    }
 
     if (!userData) throw errorHandler("Token expired!", "unAuthorized");
 
@@ -29,8 +39,6 @@ exports.userAuth = async (req, res, next) => {
     return next(error);
   }
 };
-
-
 
 
 exports.adminAuth = async (req, res, next) => {

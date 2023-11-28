@@ -11,7 +11,6 @@ const live_stream_view_handler = async (socket, io) => {
     socket.on('owner_joining_the_room', async (data) => {
         let roomId = `live_stream:${data?.id}`;
         socket.join(roomId)
-        console.log('roomId', roomId)
     })
 
 
@@ -35,19 +34,19 @@ const live_stream_view_handler = async (socket, io) => {
             const clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size;
             io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests })
         }
-
     })
 
 
 
     socket.on('live_stream_view_leave', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
+        const clientsInRoom1 = io.sockets.adapter.rooms.get(roomId)?.size;
         socket.leave(roomId)
         const live_stream_active_view_key = `live_stream_active_view:${data.live_stream_id}`
         await redis.lrem(live_stream_active_view_key, 0, data?.user_id);
         const result = await redis.lrange(live_stream_active_view_key, 0, -1)
         const clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size;
-        io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom })
+        io.to(roomId).emit('live_stream_active_leave', { result, clientsInRoom })
     })
 
 }
@@ -126,8 +125,6 @@ const live_join_request_handler = async (socket, io) => {
     socket.on('live_join_request_handler', async (data) => {
         logger.info('INFO -> JOIN REQUEST HANDLER API CALLED');
         let roomId = `live_stream:${data?.live_stream_id}`;
-
-        console.log('roomId', roomId)
         data.live_join_request_id = uuid.v4();
         data.timestamp = new Date();
 
@@ -158,13 +155,22 @@ const live_join_request_handler = async (socket, io) => {
 
 
 const live_stream_join_request_accept_handler = async (socket, io) => {
-    console.log('new data are displaying here for many things')
+
     socket.on('live_stream_join_request_accept_handler', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
         const join_request_key = `live_join_request_accepted:${data?.live_stream_id}`;
         const join_request_data = JSON.stringify(data);
         await redis.lpush(join_request_key, join_request_data);
         io.to(roomId).emit('live_stream_join_request_accept', data);
+    });
+}
+
+const live_stream_guest_leave = async (socket, io) => {
+    socket.on('live_stream_guest_leave', async (data) => {
+        let roomId = `live_stream:${data?.live_stream_id}`;
+        const join_request_key = `live_join_request_accepted:${data?.live_stream_id}`;
+        await redis.lrem(join_request_key, 0, data?.user_id);
+        io.to(roomId).emit('live_stream_guest_leave', data);
     });
 }
 
@@ -181,5 +187,6 @@ module.exports = {
     live_stream_gift_handler,
     live_stream_share_handler,
     live_join_request_handler,
-    live_stream_join_request_accept_handler
+    live_stream_join_request_accept_handler,
+    live_stream_guest_leave,
 }

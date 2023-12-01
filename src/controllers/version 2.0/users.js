@@ -13,7 +13,7 @@ const {
   VideoView,
   ProfileVisit,
   Occupations,
-  VideoReport,
+  UserReports,
   UserToUserBlock,
   UserToUserFavourite,
 } = require("../../models");
@@ -1373,6 +1373,8 @@ const addBlockedUser = async (req, res) => {
     const { id } = req.userData;
     const { blocked_user_id } = req.body;
 
+    console.log(blocked_user_id, id, "ids")
+
     let result = await UserToUserBlock.create({
       user_id: id,
       blocked_user_id
@@ -1468,12 +1470,17 @@ const addUserReport = async (req, res) => {
   logger.info('INFO -> ADDING USER REPORT API CALLED')
   try {
     const { id } = req.userData;
-    const { report_user_id, report_reason } = req.body;
+    const { 
+      report_user_id, 
+      report_reason,
+      description
+     } = req.body;
 
-    let result = await UserReport.create({
+    let result = await UserReports.create({
       user_id: id,
       report_user_id,
-      report_reason
+      report_reason,
+      description
     })
     result = JSON.parse(JSON.stringify(result))
 
@@ -1528,5 +1535,6 @@ module.exports = {
   addBlockedUser,
   removeBlockedUser,
   addFavouriteUser,
-  removeFavouriteUser
+  removeFavouriteUser,
+  addUserReport
 };

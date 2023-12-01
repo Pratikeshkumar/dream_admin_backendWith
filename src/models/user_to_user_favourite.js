@@ -1,9 +1,9 @@
 const { sq } = require("../config/db");
 const { DataTypes } = require("sequelize");
-const { User } = require("./user");
+const User = require("./user");
 
 const UserToUserFavourite = sq.define(
-  "user_to_user_block",
+  "user_to_user_favourite",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -28,7 +28,7 @@ const UserToUserFavourite = sq.define(
         key: "id",
       },
     },
-    
+
   },
   {
     freezeTableName: true,

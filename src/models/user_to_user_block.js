@@ -1,6 +1,6 @@
 const { sq } = require("../config/db");
 const { DataTypes } = require("sequelize");
-const { User } = require("./user");
+const User = require("./user");
 
 const UserToUserBlock = sq.define(
   "user_to_user_block",
@@ -18,7 +18,6 @@ const UserToUserBlock = sq.define(
         model: User,
         key: "id",
       },
-
     },
     blocked_user_id: {
       type: DataTypes.INTEGER,

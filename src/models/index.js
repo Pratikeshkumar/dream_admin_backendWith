@@ -38,9 +38,9 @@ const Promotion = require('./promotions')
 const GiftListing = require('./gift_listing')
 const liveStreamGiftStore = require('./liveStreamGiftStore')
 const VideoReport = require('./video_report')
-const UserReport = require('./user_report')
+const UserReport = require('./UsersReport')
 const UserToUserBlock = require('./user_to_user_block')
-const UserToUserReport = require('./user_to_user_report')
+const UserToUserFavourite = require('./user_to_user_favourite')
 
 
 
@@ -201,6 +201,16 @@ VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
 Video.hasMany(VideoReport, { foreignKey: 'videoId' })
 VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
+  // UserReport,
+  // UserToUserBlock,
+  // UserToUserReport
+
+
+
+
+
+
+
 
 
 module.exports = {
@@ -246,6 +256,6 @@ module.exports = {
   VideoReport,
   UserReport,
   UserToUserBlock,
-  UserToUserReport
-  
+  UserToUserFavourite
+
 };

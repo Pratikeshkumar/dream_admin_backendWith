@@ -1,6 +1,6 @@
 const { sq } = require("../config/db");
 const { DataTypes } = require("sequelize");
-const { User } = require("./user");
+const User = require("./user");
 
 const UsersReports = sq.define(
   "user_reports",
@@ -28,20 +28,20 @@ const UsersReports = sq.define(
       },
     },
     reason: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.STRING,
       allowNull: false,
     },
     description: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     picture: {
-      type: DataTypes.TEXT(1000),
-      allowNull: false,
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
     video: {
-        type: DataTypes.TEXT(1000),
-        allowNull: false,
+        type: DataTypes.TEXT,
+        allowNull: true,
     },
     status: {
       type: DataTypes.ENUM('pending', 'approved', 'rejected'),

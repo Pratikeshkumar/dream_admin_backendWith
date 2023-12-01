@@ -12,7 +12,10 @@ const {
   Hobbies,
   VideoView,
   ProfileVisit,
-  Occupations
+  Occupations,
+  VideoReport,
+  UserToUserBlock,
+  UserToUserFavourite,
 } = require("../../models");
 const fs = require('fs');
 const errorHandler = require("../../utils/errorObject");
@@ -1270,10 +1273,221 @@ const getUserShortInfo = async (req, res) => {
 
 }
 
+const getMultipleUsersDiamond = async (req, res) => {
+  logger.info('INFO -> GETTING MULTIPLE USERS DIAMOND API CALLED')
+  try {
+    const { ids } = req.body;
 
 
+    let result = await User.findAll({
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+      order: [['wallet', 'DESC']]
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
 
 
+const isUsersFollowings = async (req, res) => {
+  logger.info('INFO -> CHECKING USERS FOLLOWINGS API CALLED')
+  try {
+    const { id } = req.userData;
+    const { user_id } = req.params;
+
+    console.log(id, user_id, "ids")
+
+    let result = await UserRelationship.findOne({
+      where: { sender_id: id, receiver_id: user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    if (result) {
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: 'success'
+      })
+    } else {
+      res.status(200).json({
+        success: false,
+        data: result,
+        message: 'success'
+      })
+    }
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const getAllUserDiamondsByRanked = async (req, res) => {
+  logger.info('INFO -> GETTING ALL USERS DIAMOND BY RANKED API CALLED')
+  try {
+    const { page_no, page_size } = req.params;
+
+    const pageNo = parseInt(page_no);
+    const pageSize = parseInt(page_size);
+
+    // Calculate the offset for pagination
+    const offset = (pageNo - 1) * pageSize;
+
+    // Query the database with limit and offset for pagination
+    const language_result = await User.findAll({
+      limit: pageSize,
+      offset: offset,
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      order: [['wallet', 'DESC']]
+    });
+
+    // Return paginated results
+    res.json({
+      message: 'Successfully retrieved the list of data',
+      data: language_result,
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      message: 'Error occurred while getting the list of data',
+      error: error.message,
+    });
+  }
+}
+
+
+const addBlockedUser = async (req, res) => {
+  logger.info('INFO -> ADDING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    let result = await UserToUserBlock.create({
+      user_id: id,
+      blocked_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const removeBlockedUser = async (req, res) => {
+  logger.info('INFO -> REMOVING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    let result = await UserToUserBlock.destroy({
+      where: { user_id: id, blocked_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addFavouriteUser = async (req, res) => {
+  logger.info('INFO -> ADDING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.create({
+      user_id: id,
+      favourite_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const removeFavouriteUser = async (req, res) => {
+  logger.info('INFO -> REMOVING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.destroy({
+      where: { user_id: id, favourite_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addUserReport = async (req, res) => {
+  logger.info('INFO -> ADDING USER REPORT API CALLED')
+  try {
+    const { id } = req.userData;
+    const { report_user_id, report_reason } = req.body;
+
+    let result = await UserReport.create({
+      user_id: id,
+      report_user_id,
+      report_reason
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
 
 
 module.exports = {
@@ -1307,5 +1521,12 @@ module.exports = {
   updatePicture,
   sendNotification,
   getOccupations,
-  getUserShortInfo
+  getUserShortInfo,
+  getMultipleUsersDiamond,
+  isUsersFollowings,
+  getAllUserDiamondsByRanked,
+  addBlockedUser,
+  removeBlockedUser,
+  addFavouriteUser,
+  removeFavouriteUser
 };

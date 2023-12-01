@@ -29,6 +29,9 @@ router.get('/getAllHobbiesList/:page_no/:page_size', userApis2.getAllHobbiesList
 router.get('/searchHobbies/:search_text', userApis2.searchHobbies)
 router.get('/sendNotification', userApis2.sendNotification)
 router.post('/getUserShortInfo', userApis2.getUserShortInfo)
+router.post('/getMultipleUsersDiamond', userAuth, userApis2.getMultipleUsersDiamond)
+router.get('/isUsersFollowings/:user_id', userAuth, userApis2.isUsersFollowings)
+router.get('/getAllUserDiamondsByRanked/:page_no/:page_size', userAuth, userApis2.getAllUserDiamondsByRanked)
 
 
 /************************************* VERSION 2.0 */
@@ -46,14 +49,18 @@ router.post('/changeProfilePicture', userAuth, upload.fields([{ name: 'images', 
 router.post('/changeProfileVideo', userAuth, upload.fields([{ name: 'videos', maxCount: 1 }]), userApis2.changeProfileVideo)
 router.post('/addView', userApis2.addView)
 router.post('/addProfileVisit', userAuth, userApis2.addProfileVisit)
-
+router.post('/addBlockedUser', userAuth, userApis2.addBlockedUser)
+router.post('/removeBlockedUser', userAuth, userApis2.removeBlockedUser)
+router.post('/addFavouriteUser', userAuth, userApis2.addFavouriteUser)
+router.post('/removeFavouriteUser', userAuth, userApis2.removeFavouriteUser)
+router.post('/addUserReport', userAuth, userApis2.addUserReport)
 
 
 router.post('/upload', upload.fields([{ name: "source", maxCount: 1 }]), userApis2.uploadData);
 router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis2.userInfoById);
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
-router.get('/getOccupations',userApis2.getOccupations)
+router.get('/getOccupations', userApis2.getOccupations)
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
 

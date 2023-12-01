@@ -38,6 +38,10 @@ const Promotion = require('./promotions')
 const GiftListing = require('./gift_listing')
 const liveStreamGiftStore = require('./liveStreamGiftStore')
 const VideoReport = require('./video_report')
+const UserReport = require('./user_report')
+const UserToUserBlock = require('./user_to_user_block')
+const UserToUserReport = require('./user_to_user_report')
+
 
 
 
@@ -239,5 +243,9 @@ module.exports = {
   Promotion,
   GiftListing,
   liveStreamGiftStore,
-  VideoReport
+  VideoReport,
+  UserReport,
+  UserToUserBlock,
+  UserToUserReport
+  
 };

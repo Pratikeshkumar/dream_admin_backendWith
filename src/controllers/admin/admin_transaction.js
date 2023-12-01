@@ -4,7 +4,7 @@ const { Transaction,User} = require('../../models')
 
 
 const getTransaction = async (req, res) => {
-    logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
+    logger.info('INFO -> GETTING TRANSACTION API CALLED');
     try {
         // Retrieve transactions from the database along with user data
         const transactions = await Transaction.findAll({

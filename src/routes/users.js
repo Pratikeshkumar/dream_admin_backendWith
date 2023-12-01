@@ -44,6 +44,8 @@ router.post('/changeProfilePicture', userAuth, upload.fields([{ name: 'images', 
 router.post('/changeProfileVideo', userAuth, upload.fields([{ name: 'videos', maxCount: 1 }]), userApis2.changeProfileVideo)
 router.post('/addView', userApis2.addView)
 router.post('/addProfileVisit', userAuth, userApis2.addProfileVisit)
+router.post('/UserFriendSendDiamond',userApis2.UserFriendSendDiamond)
+
 
 
 
@@ -52,6 +54,18 @@ router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
 router.get('/getOccupations',userApis2.getOccupations)
+router.get('/getPurchaseCoins', userApis2.getPurchaseCoins)
+router.get('/getRewardFromVideo',userApis2.getRewardFromVideo)
+router.get('/getRewardFromRoseMessage',userApis2.getRewardFromRoseMessage)
+router.get('/getRewardFromMessge',userApis2.getRewardFromMessge)
+router.get('/getAllTypesRewards',userApis2.getAllTypesRewards)
+router.get('/getUserFriendTransaction',userApis2.getUserFriendTransaction)
+router.get('/Check_Username_Email',userApis2.Check_Username_Email)
+
+
+
+
+
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
 

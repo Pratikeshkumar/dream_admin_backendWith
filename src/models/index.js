@@ -38,6 +38,7 @@ const SuperadminTransaction = require('./superadmin_transaction');
 const UserAdminTransaction = require('./admin_user_transaction')
 const SuperAdminUserTransaction= require('./superAdmin_user_app_transaction')
 const VideoReport = require('./VideoReport')
+const UserFriendTransaction = require('./gift_user_friend_transation')
 
 
 
@@ -213,10 +214,15 @@ SuperAdminUserTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'rece
 User.hasMany(SuperAdminUserTransaction, { foreignKey: 'receiver_id', as: 'superadminTransactions' });
 
 VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
+
 Video.hasMany(VideoReport, { foreignKey: 'videoId' })
 VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
 Transaction.belongsTo(User, { foreignKey: 'user_id'});
+
+UserFriendTransaction.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+
 
 
 module.exports = {
@@ -258,5 +264,6 @@ module.exports = {
   Promotion,
   SuperadminTransaction,
   UserAdminTransaction,
-  VideoReport
+  VideoReport,
+  UserFriendTransaction
 };

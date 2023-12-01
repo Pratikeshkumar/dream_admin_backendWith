@@ -9,7 +9,8 @@ const VideoReport = sq.define('video_report', {
     },
     videoId: {
         type: DataTypes.INTEGER,
-        allowNull: false
+        allowNull: false,
+
     },
     reporterId: {
         type: DataTypes.INTEGER,
@@ -26,9 +27,14 @@ const VideoReport = sq.define('video_report', {
     createdAt: {
         type: DataTypes.DATE,
         defaultValue: DataTypes.NOW
-    }
+    },
+    videos: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    images: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
 });
-
-
-
 module.exports = VideoReport;

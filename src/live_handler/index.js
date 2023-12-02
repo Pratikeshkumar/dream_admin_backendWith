@@ -41,8 +41,8 @@ nms.on('postPlay', (id, StreamPath, args) => {
 });
 
 nms.on('donePlay', (id, StreamPath, args) => {
-  console.log('[NodeEvent on donePlay]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
+  const ipAddress = args.ip;
+  console.log(`User with IP address ${ipAddress} stopped watching the stream`);
 });
-
 
 module.exports = nms;

@@ -131,7 +131,7 @@ const getAllActiveLiveStream = async (req, res) => {
                 {
                     model: User,
                     as: 'user',
-                    attributes: ['id', 'username', 'nickname', 'profile_pic'],
+                    attributes: ['id', 'username', 'nickname', 'profile_pic', 'wallet'],
                 }
             ],
             offset: offset,

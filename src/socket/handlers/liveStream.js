@@ -20,27 +20,44 @@ const live_stream_view_handler = async (socket, io) => {
 
 
     socket.on('live_stream_view_join', async (data) => {
-        let guests, clientsInRoom, result = [];
+        let guests, clientsInRoom, result = [], likes = [];
+
         let roomId = `live_stream:${data?.live_stream_id}`;
+
         socket.join(roomId)
+
+
         data.viewers_id = uuid.v4();
         data.createdAt = new Date()
+
+
         let active_data = JSON.stringify(data)
+
+
         const live_stream_active_view_key = `live_stream_active_view:${data.live_stream_id}`
+
         const join_request_key = `live_join_request_accepted:${data?.live_stream_id}`;
+
+        const key = `live_stream_like:${data?.live_stream_id}`
+
+        likes = await redis.lrange(key, 0, -1)
+        likes = likes.map(like => JSON.parse(like));
+
         result = await redis.lrange(live_stream_active_view_key, 0, -1)
         result = result.map(result => JSON.parse(result));
+
         guests = await redis.lrange(join_request_key, 0, -1)
         guests = guests.map(guest => JSON.parse(guest));
+
         clientsInRoom = io.sockets.adapter.rooms.get(roomId)?.size - 1;
         if (!result?.some(viewer => viewer?.user_id === data?.user_id)) {
             const live_stream_view_key = `live_stream_view:${data?.live_stream_id}`
             await redis.lpush(live_stream_view_key, active_data)
             await redis.lpush(live_stream_active_view_key, active_data)
             result = [...result, data]
-            io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests })
+            io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests, likes })
         } else {
-            io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests })
+            io.to(roomId).emit('live_stream_active_view', { result, clientsInRoom, data, guests, likes })
         }
 
     })
@@ -49,7 +66,6 @@ const live_stream_view_handler = async (socket, io) => {
 
     socket.on('live_stream_view_leave', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
-        const clientsInRoom1 = io.sockets.adapter.rooms.get(roomId)?.size;
         socket.leave(roomId)
         const live_stream_active_view_key = `live_stream_active_view:${data.live_stream_id}`
         await redis.lrem(live_stream_active_view_key, 0, data?.user_id);
@@ -64,7 +80,7 @@ const live_stream_like_handler = async (socket, io) => {
     socket.on('live_stream_like_handler', async (data) => {
         let roomId = `live_stream:${data?.live_stream_id}`;
         data.like_id = uuid.v4(),
-            data.timestamp = new Date()
+        data.timestamp = new Date()
         const like_data = JSON.stringify(data)
         const key = `live_stream_like:${data?.live_stream_id}`
         await redis.lpush(key, like_data)

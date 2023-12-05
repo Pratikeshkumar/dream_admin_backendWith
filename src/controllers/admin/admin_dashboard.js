@@ -103,7 +103,7 @@ const getVideos = async (req, res) => {
 
     res.status(200).json({
       message: "Videos retrieved successfully",
-      data: videos,
+      // data: videos,
       videoCount: videoCount,
       topVideosByDiamonds: topVideosByDiamonds,
       topVideosByLikes: topVideosByLikes,

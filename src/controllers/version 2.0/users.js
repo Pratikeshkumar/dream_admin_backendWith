@@ -16,7 +16,14 @@ const {
   UserReports,
   UserToUserBlock,
   UserToUserFavourite,
+  MessageSubscription,
+  CommentRose,
+  UserFriendTransaction,
+  UserAdminTransaction
 } = require("../../models");
+
+
+
 const fs = require('fs');
 const errorHandler = require("../../utils/errorObject");
 const { JWT_KEY } = process.env;
@@ -250,11 +257,75 @@ const userInfoById = async (req, res, next) => {
     return next(error);
   }
 };
+// const userInfoById = async (req, res, next) => {
+//   try {
+//     const { user_id } = req.params;
 
+//     const user = await User.findOne({
+//       attributes: {
+//         exclude: ['password']
+//       },
+//       where: { id: user_id },
+//       include: [
+//         {
+//           model: Video,
+//           as: 'videos',
+//           attributes: ['id', 'description', 'video', 'thum', 'diamond_value', 'like', 'created'],
+//           include: [
+//             {
+//               model: VideoView,
+//               as: 'views',
+//               attributes: ['view'],
+//             },
+//           ],
+//         },
+//         {
+//           model: User,
+//           as: 'Followers',
+//           attributes: ['id', 'username'],
+//         },
+//         {
+//           model: User,
+//           as: 'Following',
+//           attributes: ['id', 'username'],
+//         },
+//       ],
+//     });
 
+//     if (!user) {
+//       throw errorHandler("User not found", "notFound");
+//     }
 
+//     const liked_video = await Like.findAll({
+//       where: { sender_id: user_id },
+//       include: [
+//         {
+//           model: Video,
+//           as: 'video',
+//           attributes: ['id', 'description', 'video', 'thum', 'diamond_value', 'like', 'created'],
+//         },
+//         {
+//           model: User,
+//           as: 'receiver',
+//           attributes: ['id', 'username'],
+//         },
+//       ],
+//     });
 
+//     // Calculate total views for the user's videos
+//     const totalViews = user.videos.reduce((sum, video) => {
+//       if (video.views && video.views.length > 0) {
+//         sum += video.views[0].view; // Assuming each video has only one associated view
+//       }
+//       return sum;
+//     }, 0);
 
+//     return res.status(200).json({ user, liked_video, totalViews });
+//   } catch (error) {
+//     console.error('Error fetching user information:', error);
+//     return next(error);
+//   }
+// };
 
 const updateUser = async (req, res, next) => {
   logger.info("VERSION 2.0 -> USER: USER UPDATE API CALLED");
@@ -1118,6 +1189,292 @@ const getOccupations = async (req, res) => {
 }
 
 
+const getPurchaseCoins = async (req, res) => {
+  logger.info('INFO -> GETTING PURCHASE_COINS API CALLED');
+  try {
+    // Retrieve transactions from the database along with user data
+    const transactions = await Transaction.findAll({
+      attributes: ['dimanond_value']
+    });
+
+    // Check if any transactions were found
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({ message: 'No transactions found' });
+    }
+
+
+    // Return the list of transactions with user data
+    res.status(200).json({ transactions });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+}
+
+
+const getRewardFromVideo = async (req, res) => {
+  try {
+    // Retrieve video gift transactions from the database
+    const transactions = await Gift.findAll({
+      attributes: ['diamonds', 'createdAt']
+    });
+
+    // Check if any transactions were found
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({ message: 'No transactions found' });
+    }
+
+    // Return the list of video gift transactions
+    res.status(200).json({ transactions });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+};
+
+const getRewardFromRoseMessage = async (req, res) => {
+  try {
+    // Retrieve video gift transactions from the database
+    const transactions = await CommentRose.findAll({
+      attributes: ['diamonds', 'createdAt']
+    });
+
+    // Check if any transactions were found
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({ message: 'No transactions found' });
+    }
+
+    // Return the list of video gift transactions
+    res.status(200).json({ transactions });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+};
+
+const getRewardFromMessge = async (req, res) => {
+  try {
+    // Retrieve video gift transactions from the database
+    const transactions = await MessageSubscription.findAll({
+      attributes: ['no_of_diamond', 'createdAt']
+    });
+
+    // Check if any transactions were found
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({ message: 'No transactions found' });
+    }
+
+    // Return the list of video gift transactions
+    res.status(200).json({ transactions });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+};
+
+
+
+const getAllTypesRewards = async (req, res) => {
+  try {
+    // Retrieve data from different models
+    // console.log(req.query, "query")
+    const user_id = req.query.user_id.user_id
+    const transactions = await Transaction.findAll({
+      attributes: ["dimanond_value"],
+      where: {
+
+        user_id: user_id
+      }
+    });
+    const messageSubscriptions = await MessageSubscription.findAll({
+      attributes: ['no_of_diamond', 'createdAt'],
+      where: {
+
+        reciever_id: user_id
+      }
+    });
+    const commentRoses = await CommentRose.findAll({
+      attributes: ['diamonds', 'createdAt'],
+      where: {
+
+        reciever_id: user_id
+      }
+    });
+    const gifts = await Gift.findAll({
+      attributes: ['diamonds', 'createdAt'],
+      where: {
+
+        reciever_id: user_id
+      }
+    });
+
+    const GiftUserFriend = await UserFriendTransaction.findAll({
+      attributes: ["diamond_value", "createdAt"],
+      where: {
+
+        receiver_id: user_id
+      }
+    });
+
+    const GiftAdminUser = await UserAdminTransaction.findAll({
+      attributes: ["diamond_value", "createdAt"],
+      where: {
+
+        receiver_id: user_id
+      }
+    });
+
+
+    // Return the data for all types
+    res.status(200).json({
+      transactions,
+      messageSubscriptions,
+      commentRoses,
+      gifts,
+      GiftUserFriend,
+      GiftAdminUser
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+};
+
+const UserFriendSendDiamond = async (req, res) => {
+  try {
+    const { senderId, reciever_id, diamonds } = req.body;
+    console.log(senderId, reciever_id, diamonds, "backendcall");
+
+    // Fetch sender and receiver details
+    const sender = await User.findByPk(senderId);
+    const receiver = await User.findByPk(reciever_id);
+
+    if (!sender || !receiver) {
+      return res.status(404).json({ error: 'Sender or receiver not found' });
+    }
+
+    // Check if the sender has enough diamonds
+    if (sender.wallet < diamonds) {
+      return res.status(400).json({ error: 'Insufficient diamonds in the sender\'s wallet' });
+    }
+
+    // Update sender's wallet (subtract diamonds)
+    sender.wallet -= diamonds;
+    await sender.save();
+
+    // Update receiver's wallet (add diamonds)
+    receiver.wallet += diamonds;
+    await receiver.save();
+
+    // Create a new transaction record
+    const transaction = await UserFriendTransaction.create({
+      diamond_value: diamonds,
+      sender_id: senderId,
+      receiver_id: reciever_id,
+      transaction_type: 'debit',
+      status: 'completed', // You might want to set an appropriate status
+    });
+
+    // Fetch the updated sender data to get the new wallet balance
+    const updatedSender = await User.findByPk(senderId);
+
+    return res.status(200).json({
+      message: 'Diamonds sent successfully',
+      transaction,
+      newWalletBalance: updatedSender.wallet,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+const getUserFriendTransaction = async (req, res) => {
+  try {
+    // Retrieve video gift transactions from the database
+    const transactions = await UserFriendTransaction.findAll();
+
+    // Check if any transactions were found
+    if (!transactions || transactions.length === 0) {
+      return res.status(404).json({ message: 'No transactions found' });
+    }
+
+    // Return the list of video gift transactions
+    res.status(200).json({ transactions });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: 'Error generated while processing your request', error });
+  }
+};
+
+
+
+const Check_Username_Email = async (req, res) => {
+  try {
+    const { username, email } = req.query;
+    console.log(username, email, "backend new");
+
+    if (!username && !email) {
+      // If neither username nor email is provided, return an error response
+      return res.status(400).json({
+        message: 'Please provide a username or email for availability check',
+        available: false,
+        userId: null
+      });
+    }
+
+    // Check if a user with the given username exists
+    const userByUsername = username
+      ? await User.findOne({
+        where: {
+          username: username
+        },
+        attributes: ['userId', 'username', 'email']
+      })
+      : null;
+
+    // Check if a user with the given email exists
+    const userByEmail = email
+      ? await User.findOne({
+        where: {
+          email: email
+        },
+        attributes: ['userId', 'username', 'email']
+      })
+      : null;
+
+    if (userByUsername || userByEmail) {
+      // Username or email is not available
+      res.json({
+        message: 'Username or email is not available',
+        available: false,
+        userId: (userByUsername || userByEmail).id
+      });
+    } else {
+      // Both username and email are available
+      res.json({
+        message: 'Username and email are available',
+        available: true,
+        userId: null // Replace with the actual user ID if available
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: 'Error occurred while checking the availability',
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+
+
 
 
 const sendNotification = async (req, res) => {
@@ -1536,5 +1893,14 @@ module.exports = {
   removeBlockedUser,
   addFavouriteUser,
   removeFavouriteUser,
-  addUserReport
+  addUserReport,
+  getOccupations,
+  getPurchaseCoins,
+  getRewardFromVideo,
+  getRewardFromRoseMessage,
+  getRewardFromMessge,
+  getAllTypesRewards,
+  UserFriendSendDiamond,
+  getUserFriendTransaction,
+  Check_Username_Email
 };

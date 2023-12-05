@@ -37,11 +37,16 @@ const LiveSettings = require('./live_settings')
 const Promotion = require('./promotions')
 const GiftListing = require('./gift_listing')
 const liveStreamGiftStore = require('./liveStreamGiftStore')
-const VideoReport = require('./video_report')
+// const VideoReport = require('./video_report')
 const UserReport = require('./UsersReport')
 const UserToUserBlock = require('./user_to_user_block')
 const UserToUserFavourite = require('./user_to_user_favourite')
 
+const SuperadminTransaction = require('./superadmin_transaction');
+const UserAdminTransaction = require('./admin_user_transaction')
+const SuperAdminUserTransaction= require('./superAdmin_user_app_transaction')
+const VideoReport = require('./VideoReport')
+const UserFriendTransaction = require('./gift_user_friend_transation')
 
 
 
@@ -86,6 +91,9 @@ Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
 
+
+
+PicturePost.belongsTo(User, { foreignKey: 'user_id' });
 
 PostComment.belongsTo(User, {
   foreignKey: 'user_id',
@@ -210,6 +218,29 @@ VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
 
 
+Admin.hasMany(SuperadminTransaction, {
+  foreignKey: 'receiver_id',
+  as: 'transactions',
+});
+
+SuperadminTransaction.belongsTo(Admin, {
+  foreignKey: 'receiver_id',
+});
+
+UserAdminTransaction.belongsTo(Admin, { foreignKey: 'sender_id', as: 'sender' });
+UserAdminTransaction.belongsTo(Admin, { foreignKey: 'receiver_id', as: 'receiver' });
+SuperAdminUserTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+User.hasMany(SuperAdminUserTransaction, { foreignKey: 'receiver_id', as: 'superadminTransactions' });
+
+VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
+
+Video.hasMany(VideoReport, { foreignKey: 'videoId' })
+VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
+
+Transaction.belongsTo(User, { foreignKey: 'user_id'});
+
+UserFriendTransaction.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
 
 
@@ -256,6 +287,11 @@ module.exports = {
   VideoReport,
   UserReport,
   UserToUserBlock,
-  UserToUserFavourite
-
+  UserToUserFavourite,
+  Promotion,
+  SuperadminTransaction,
+  UserAdminTransaction,
+  VideoReport,
+  UserFriendTransaction
+  
 };

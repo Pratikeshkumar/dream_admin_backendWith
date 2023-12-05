@@ -8,6 +8,8 @@
 const logger = require('../../utils/logger');
 const { Admin } = require('../../models');
 const bcrypt = require('bcrypt');
+const { Op } = require('sequelize');
+
 
 
 const addEmployee = async (req, res) => {
@@ -60,9 +62,14 @@ const addEmployee = async (req, res) => {
 const getEmployees = async (req, res) => {
     logger.info('INFO -> GET EMPLOYEES API CALLED');
     try {
-
-        // Retrieve all employee records from the "admin" table
-        const employees = await Admin.findAll();
+        // Assuming "Admin" model has a "role" field that represents the employee's role
+        const employees = await Admin.findAll({
+            where: {
+                role: {
+                    [Op.or]: ['admin', 'assistant manager', 'manager']
+                }
+            }
+        });
 
         res.status(200).json({ employees });
     } catch (error) {
@@ -70,7 +77,6 @@ const getEmployees = async (req, res) => {
         res.status(500).json({ message: 'Error generated while processing your request' });
     }
 };
-
 
 
 // Function to activate an employee

@@ -54,6 +54,9 @@ router.post('/removeBlockedUser', userAuth, userApis2.removeBlockedUser)
 router.post('/addFavouriteUser', userAuth, userApis2.addFavouriteUser)
 router.post('/removeFavouriteUser', userAuth, userApis2.removeFavouriteUser)
 router.post('/addUserReport', userAuth, userApis2.addUserReport)
+router.post('/UserFriendSendDiamond',userApis2.UserFriendSendDiamond)
+
+
 
 
 router.post('/upload', upload.fields([{ name: "source", maxCount: 1 }]), userApis2.uploadData);
@@ -61,6 +64,19 @@ router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
 router.get('/getOccupations', userApis2.getOccupations)
+router.get('/getOccupations',userApis2.getOccupations)
+router.get('/getPurchaseCoins', userApis2.getPurchaseCoins)
+router.get('/getRewardFromVideo',userApis2.getRewardFromVideo)
+router.get('/getRewardFromRoseMessage',userApis2.getRewardFromRoseMessage)
+router.get('/getRewardFromMessge',userApis2.getRewardFromMessge)
+router.get('/getAllTypesRewards',userApis2.getAllTypesRewards)
+router.get('/getUserFriendTransaction',userApis2.getUserFriendTransaction)
+router.get('/Check_Username_Email',userApis2.Check_Username_Email)
+
+
+
+
+
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
 

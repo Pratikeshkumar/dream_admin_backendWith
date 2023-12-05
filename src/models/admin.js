@@ -54,6 +54,11 @@ const Admin = sq.define(
         return d.toISOString();
       },
     },
+    wallet: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0, 
+    },
   },
   {
     timestamps: false,

@@ -6,76 +6,76 @@
 const logger = require('../../utils/logger')
 const { Country } = require('../../models')
 
-// const addCountries = async (req, res) => {
-//     logger.info('INFO -> ADDING COUNTRIES API CALLED');
-//     try {
-//         const {
-//             name,
-//             iso3,
-//             short_name,
-//             phonecode,
-//             capital,
-//             currency,
-//             native,
-//             region,
-//             subregion,
-//             emoji,
-//             emojiU,
-//             flag,
-//             wikiDataId,
-//             active
-//         } = req.body;
-//         console.log(req.body)
+const addCountries = async (req, res) => {
+    logger.info('INFO -> ADDING COUNTRIES API CALLED');
+    try {
+        const {
+            name,
+            iso3,
+            short_name,
+            phonecode,
+            capital,
+            currency,
+            native,
+            region,
+            subregion,
+            emoji,
+            emojiU,
+            flag,
+            wikiDataId,
+            active
+        } = req.body;
+        console.log(req.body)
 
-//         // Create a new country
-//         const newCountry = await Country.create({
-//             name,
-//             iso3,
-//             short_name,
-//             phonecode,
-//             capital,
-//             currency,
-//             native,
-//             region,
-//             subregion,
-//             emoji,
-//             emojiU,
-//             flag,
-//             wikiDataId,
-//             active,
-//         });
+        // Create a new country
+        const newCountry = await Country.create({
+            name,
+            iso3,
+            short_name,
+            phonecode,
+            capital,
+            currency,
+            native,
+            region,
+            subregion,
+            emoji,
+            emojiU,
+            flag,
+            wikiDataId,
+            active,
+        });
 
-//         res.status(201).json({ message: 'Country added successfully', data: newCountry });
-//     } catch (error) {
-//         logger.error(error);
-//         res.status(500).json({ message: 'Error generated while processing your request', error });
-//     }
-// }
+        res.status(201).json({ message: 'Country added successfully', data: newCountry });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ message: 'Error generated while processing your request', error });
+    }
+}
 // const Country = require('../models/Country');
 
-const addCountries = async (req, res) => {
-  try {
-    const { region, countries } = req.body;
+// const addCountries = async (req, res) => {
+//   try {
+//     const { region, countries } = req.body;
 
-    let countriesArray = countries; // Initialize with the input data
+//     let countriesArray = countries; // Initialize with the input data
 
-    // Check if countries is a string; if so, split it into an array
-    if (typeof countries === 'string') {
-      countriesArray = countries.split(',').map(country => country.trim());
-    }
+//     // Check if countries is a string; if so, split it into an array
+//     if (typeof countries === 'string') {
+//       countriesArray = countries.split(',').map(country => country.trim());
+//     }
 
-    // Create a new country record
-    const newCountry = await Country.create({
-      region,
-      countries: countriesArray,
-    });
+//     // Create a new country record
+//     const newCountry = await Country.create({
+//       region,
+//       countries: countriesArray,
+//     });
 
-    res.status(201).json({ message: 'Country added successfully', data: newCountry });
-  } catch (error) {
-    console.error('Error adding country:', error);
-    res.status(500).json({ message: 'Error adding country', error });
-  }
-};
+//     res.status(201).json({ message: 'Country added successfully', data: newCountry });
+//   } catch (error) {
+//     console.error('Error adding country:', error);
+//     res.status(500).json({ message: 'Error adding country', error });
+//   }
+// };
 
   
 

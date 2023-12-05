@@ -17,6 +17,9 @@ router.get('/getUsersVideo/:user_id',adminAuth,adminUserApis.getUsersVideo)
 router.post('/sendGift',adminAuth,adminUserApis.sendGifts)
 router.get('/getBasicUsers', adminAuth, adminUserApis.getBasicUsers);
 router.get('/getPremiumUsers', adminAuth, adminUserApis.getPremiumUsers);
+router.get('/getuser_photo_post/:user_id', adminAuth, adminUserApis.get_user_photo_post);
+router.patch('/changeUserAccount_type/:id', adminAuth, adminUserApis.changeUserAccount_type)
+
 
 
 module.exports = router

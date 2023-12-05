@@ -10,17 +10,30 @@ const errorHandler = require('./src/middlewares/errorHandler');
 const log = require('./src/utils/logger');
 const AWS = require('aws-sdk')
 const { s3 } = require('./src/config/aws')
-const { liveStreamGiftStore } = require('./src/models')
+const { liveStreamGiftStore, Transaction } = require('./src/models')
 const axios = require('axios')
 const nms = require('./src/live_handler/index')
 const { kafka, consumer, admin } = require('./src/config/kafka')
 const { redis, testRedisConnection } = require('./src/config/redis')
 const uuid = require('uuid')
+const cron = require('node-cron')
+const { getTimeToTimeHighestDiamondUser } = require('./src/workers/updateTimeToTimeDiamond')
+
+
+
 
 
 nms.run()
 testDbConnection();
 testRedisConnection()
+setTimeout(async() => {
+  await getTimeToTimeHighestDiamondUser(100000)
+
+}, 20000);
+
+
+
+
 
 
 

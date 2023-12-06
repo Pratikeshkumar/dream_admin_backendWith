@@ -41,12 +41,12 @@ const liveStreamGiftStore = require('./liveStreamGiftStore')
 const UserReport = require('./UsersReport')
 const UserToUserBlock = require('./user_to_user_block')
 const UserToUserFavourite = require('./user_to_user_favourite')
-
 const SuperadminTransaction = require('./superadmin_transaction');
 const UserAdminTransaction = require('./admin_user_transaction')
-const SuperAdminUserTransaction= require('./superAdmin_user_app_transaction')
+const SuperAdminUserTransaction = require('./superAdmin_user_app_transaction')
 const VideoReport = require('./VideoReport')
 const UserFriendTransaction = require('./gift_user_friend_transation')
+const HighestUsersDiamondsData = require('./highest_users_diamond_data')
 
 
 
@@ -209,9 +209,9 @@ VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
 Video.hasMany(VideoReport, { foreignKey: 'videoId' })
 VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
-  // UserReport,
-  // UserToUserBlock,
-  // UserToUserReport
+// UserReport,
+// UserToUserBlock,
+// UserToUserReport
 
 
 
@@ -237,7 +237,7 @@ VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
 Video.hasMany(VideoReport, { foreignKey: 'videoId' })
 VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
-Transaction.belongsTo(User, { foreignKey: 'user_id'});
+Transaction.belongsTo(User, { foreignKey: 'user_id' });
 
 UserFriendTransaction.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
@@ -292,6 +292,7 @@ module.exports = {
   SuperadminTransaction,
   UserAdminTransaction,
   VideoReport,
-  UserFriendTransaction
-  
+  UserFriendTransaction,
+  SuperAdminUserTransaction,
+  HighestUsersDiamondsData
 };

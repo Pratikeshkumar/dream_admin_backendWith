@@ -5,7 +5,8 @@ const {
     CommentRose,
     UserFriendTransaction,
     UserAdminTransaction,
-    SuperadminTransaction,
+    SuperAdminUserTransaction,
+    HighestUsersDiamondsData
 } = require('../models')
 const logger = require('../utils/logger')
 const { Op } = require('sequelize')
@@ -141,7 +142,7 @@ const Sequelize = require('sequelize')
 
 
 
-const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
+const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours, type) => {
     logger.info('INFO -> CRON JOB RUNNING FOR GETTING TIME TO TIME HIGHEST DIAMOND USER')
     try {
         const currentTime = new Date();
@@ -154,7 +155,13 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
             commentRose = [],
             userFriendTransaction = [],
             userAdminTransaction = [],
-            superadminTransaction = []
+            superAdminUserTransaction = []
+
+
+        const giftSenderMap = new Map()
+        const giftReceiverMap = new Map()
+
+
 
 
         transaction = await Transaction.findAll({
@@ -167,6 +174,15 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
             group: ['user_id']
         })
         transaction = JSON.parse(JSON.stringify(transaction))
+
+        transaction.forEach((transaction) => {
+            if (giftReceiverMap.has(transaction.user_id)) {
+                giftReceiverMap.set(transaction.user_id, giftReceiverMap.get(transaction.user_id) + Number(transaction.total_diamond))
+            }
+            else {
+                giftReceiverMap.set(transaction.user_id, Number(transaction.total_diamond))
+            }
+        })
 
 
 
@@ -184,6 +200,23 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
         gift = JSON.parse(JSON.stringify(gift))
 
 
+        gift.forEach((gift) => {
+            if (giftSenderMap.has(gift.sender_id)) {
+                giftSenderMap.set(gift.sender_id, giftSenderMap.get(gift.sender_id) + Number(gift.total_diamonds_sent))
+            }
+            else {
+                giftSenderMap.set(gift.sender_id, Number(gift.total_diamonds_sent))
+            };
+
+            if (giftReceiverMap.has(gift.reciever_id)) {
+                giftReceiverMap.set(gift.reciever_id, giftReceiverMap.get(gift.reciever_id) + Number(gift.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(gift.reciever_id, Number(gift.total_diamonds_received))
+            }
+        })
+
+
 
         messageSubscription = await MessageSubscription.findAll({
             where: {
@@ -198,6 +231,21 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
         })
         messageSubscription = JSON.parse(JSON.stringify(messageSubscription))
 
+        messageSubscription.forEach((messageSubscription) => {
+            if (giftSenderMap.has(messageSubscription.sender_id)) {
+                giftSenderMap.set(messageSubscription.sender_id, giftSenderMap.get(messageSubscription.sender_id) + Number(messageSubscription.total_diamonds_sent))
+            }
+            else {
+                giftSenderMap.set(messageSubscription.sender_id, Number(messageSubscription.total_diamonds_sent))
+            };
+
+            if (giftReceiverMap.has(messageSubscription.reciever_id)) {
+                giftReceiverMap.set(messageSubscription.reciever_id, giftReceiverMap.get(messageSubscription.reciever_id) + Number(messageSubscription.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(messageSubscription.reciever_id, Number(messageSubscription.total_diamonds_received))
+            }
+        })
 
 
 
@@ -214,6 +262,25 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
         })
         commentRose = JSON.parse(JSON.stringify(commentRose))
 
+        commentRose.forEach((commentRose) => {
+            if (giftSenderMap.has(commentRose.sender_id)) {
+                giftSenderMap.set(commentRose.sender_id, giftSenderMap.get(commentRose.sender_id) + Number(commentRose.total_diamonds_sent))
+            }
+            else {
+                giftSenderMap.set(commentRose.sender_id, Number(commentRose.total_diamonds_sent))
+            };
+
+            if (giftReceiverMap.has(commentRose.reciever_id)) {
+                giftReceiverMap.set(commentRose.reciever_id, giftReceiverMap.get(commentRose.reciever_id) + Number(commentRose.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(commentRose.reciever_id, Number(commentRose.total_diamonds_received))
+            }
+        }
+        )
+
+
+
 
         userFriendTransaction = await UserFriendTransaction.findAll({
             where: {
@@ -227,6 +294,24 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
             group: ['receiver_id', 'sender_id']
         })
         userFriendTransaction = JSON.parse(JSON.stringify(userFriendTransaction))
+
+        userFriendTransaction.forEach((userFriendTransaction) => {
+            if (giftSenderMap.has(userFriendTransaction.sender_id)) {
+                giftSenderMap.set(userFriendTransaction.sender_id, giftSenderMap.get(userFriendTransaction.sender_id) + Number(userFriendTransaction.total_diamonds_sent))
+            }
+            else {
+                giftSenderMap.set(userFriendTransaction.sender_id, Number(userFriendTransaction.total_diamonds_sent))
+            };
+
+            if (giftReceiverMap.has(userFriendTransaction.receiver_id)) {
+                giftReceiverMap.set(userFriendTransaction.receiver_id, giftReceiverMap.get(userFriendTransaction.receiver_id) + Number(userFriendTransaction.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(userFriendTransaction.receiver_id, Number(userFriendTransaction.total_diamonds_received))
+            }
+        }
+        )
+
 
 
         userAdminTransaction = await UserAdminTransaction.findAll({
@@ -242,9 +327,19 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
         })
         userAdminTransaction = JSON.parse(JSON.stringify(userAdminTransaction))
 
+        userAdminTransaction.forEach((userAdminTransaction) => {
+            if (giftReceiverMap.has(userAdminTransaction.receiver_id)) {
+                giftReceiverMap.set(userAdminTransaction.receiver_id, giftReceiverMap.get(userAdminTransaction.receiver_id) + Number(userAdminTransaction.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(userAdminTransaction.receiver_id, Number(userAdminTransaction.total_diamonds_received))
+            }
+        }
+        )
 
 
-        superadminTransaction = await SuperadminTransaction.findAll({
+
+        superAdminUserTransaction = await SuperAdminUserTransaction.findAll({
             where: {
                 createdAt: {
                     [Op.between]: [beforeOneHourTime, currentTime]
@@ -254,21 +349,38 @@ const getTimeToTimeHighestDiamondUser = async (beforeTimeInHours) => {
                 [Sequelize.fn('sum', Sequelize.col('diamond_value')), 'total_diamonds_received']],
             group: ['receiver_id']
         })
-        superadminTransaction = JSON.parse(JSON.stringify(superadminTransaction))
+        superAdminUserTransaction = JSON.parse(JSON.stringify(superAdminUserTransaction))
+
+        superAdminUserTransaction.forEach((superAdminUserTransaction) => {
+            if (giftReceiverMap.has(superAdminUserTransaction.receiver_id)) {
+                giftReceiverMap.set(superAdminUserTransaction.receiver_id, giftReceiverMap.get(superAdminUserTransaction.receiver_id) + Number(superAdminUserTransaction.total_diamonds_received))
+            }
+            else {
+                giftReceiverMap.set(superAdminUserTransaction.receiver_id, Number(superAdminUserTransaction.total_diamonds_received))
+            }
+        }
+        )
 
 
-        console.log('transaction', transaction)
-        console.log('gift', gift)
-        console.log('messageSubscription', messageSubscription)
-        console.log('commentRose', commentRose)
-        console.log('userFriendTransaction', userFriendTransaction)
-        console.log('userAdminTransaction', userAdminTransaction)
+        // console.log('transaction', transaction)
+        // console.log('gift', gift)
+        // console.log('messageSubscription', messageSubscription)
+        // console.log('commentRose', commentRose)
+        // console.log('userFriendTransaction', userFriendTransaction)
+        // console.log('userAdminTransaction', userAdminTransaction)
 
-
-
-        
-
-
+        const transactionSenderMap = [...giftSenderMap.entries()]
+        await HighestUsersDiamondsData.create({
+            type: type,
+            data: transactionSenderMap,
+            transaction_type: 'sender'
+        })
+        const transactionReceiverMap = [...giftReceiverMap.entries()]
+        await HighestUsersDiamondsData.create({
+            type: type,
+            data: transactionReceiverMap,
+            transaction_type: 'receiver'
+        })
 
 
     } catch (error) {

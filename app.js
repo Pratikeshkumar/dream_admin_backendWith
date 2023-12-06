@@ -26,11 +26,36 @@ const { getTimeToTimeHighestDiamondUser } = require('./src/workers/updateTimeToT
 nms.run()
 testDbConnection();
 testRedisConnection()
-setTimeout(async() => {
-  await getTimeToTimeHighestDiamondUser(100000)
+// setTimeout(async() => {
+//   await getTimeToTimeHighestDiamondUser(1000000)
 
-}, 20000);
+// }, 20000);
 
+
+
+// running a task every hour
+cron.schedule('0 * * * *', async () => {
+  console.log('running a task every hour');
+  await getTimeToTimeHighestDiamondUser(1, 'last_1_hour')
+});
+
+// running a task every day at 12 AM
+cron.schedule('0 0 * * *', async () => {
+  console.log('running a task every day at 12 AM');
+  await getTimeToTimeHighestDiamondUser(24, 'last_24_hours')
+});
+
+// running a task every Monday at 1 AM
+cron.schedule('0 1 * * 1', async () => {
+  console.log('running a task every Monday at 1 AM');
+  await getTimeToTimeHighestDiamondUser(168, 'last_7_days')
+});
+
+// running a task at 12 AM on the 1st day of every month
+cron.schedule('0 0 1 * *', async () => {
+  console.log('running a task at 12 AM on the 1st day of every month');
+  await getTimeToTimeHighestDiamondUser(732, 'last_30_days')
+});
 
 
 

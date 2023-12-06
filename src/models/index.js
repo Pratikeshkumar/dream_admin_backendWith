@@ -48,6 +48,13 @@ const VideoReport = require('./VideoReport')
 const UserFriendTransaction = require('./gift_user_friend_transation')
 const HighestUsersDiamondsData = require('./highest_users_diamond_data')
 
+const LiveStreamViewers = require('./liveStreamViewers')
+const LiveStreamLike = require('./liveStreamLike')
+const LiveStreamGift = require('./liveStreamGift')
+const LiveStreamComment = require('./liveStreamComment')
+const LiveStreamRose = require('./liveStreamRose')
+const LiveStreamShare = require('./liveStreamShare')
+
 
 
 CommentRose.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
@@ -294,5 +301,12 @@ module.exports = {
   VideoReport,
   UserFriendTransaction,
   SuperAdminUserTransaction,
-  HighestUsersDiamondsData
+  HighestUsersDiamondsData,
+  LiveStreamViewers,
+  LiveStreamLike,
+  LiveStreamGift,
+  LiveStreamComment,
+  LiveStreamRose,
+  LiveStreamShare
+  
 };

@@ -408,6 +408,9 @@ const deleteVideoCount = async (req, res) => {
 
 
 
+const sendGiftInVideo =  
+
+
 
 module.exports = {
   getAllUserVideos,

@@ -265,5 +265,6 @@ module.exports = {
   SuperadminTransaction,
   UserAdminTransaction,
   VideoReport,
-  UserFriendTransaction
+  UserFriendTransaction,
+  SuperAdminUserTransaction
 };

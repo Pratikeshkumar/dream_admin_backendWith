@@ -54,6 +54,7 @@ const LiveStreamGift = require('./liveStreamGift')
 const LiveStreamComment = require('./liveStreamComment')
 const LiveStreamRose = require('./liveStreamRose')
 const LiveStreamShare = require('./liveStreamShare')
+const UserPrivacy = require('./userPrivacy')
 
 
 
@@ -251,6 +252,12 @@ UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver
 
 
 
+// user privacy of the users
+User.hasOne(UserPrivacy, { foreignKey: 'user_id', as: 'user_privacy' })
+UserPrivacy.belongsTo(User, { foreignKey: 'user_id', as: 'user_privacy' })
+
+
+
 module.exports = {
   Admin,
   User,
@@ -307,6 +314,7 @@ module.exports = {
   LiveStreamGift,
   LiveStreamComment,
   LiveStreamRose,
-  LiveStreamShare
+  LiveStreamShare,
+  UserPrivacy
   
 };

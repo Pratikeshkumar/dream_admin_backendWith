@@ -19,7 +19,8 @@ const {
   MessageSubscription,
   CommentRose,
   UserFriendTransaction,
-  UserAdminTransaction
+  UserAdminTransaction,
+  UserPrivacy
 } = require("../../models");
 
 
@@ -67,6 +68,7 @@ const signup = async (req, res, next) => {
     });
 
     created_user = JSON.parse(JSON.stringify(created_user));
+    await UserPrivacy.create({ user_id: created_user.id })
     if (!created_user) throw errorHandler("Unexpected error occured while creating user!", "badRequest");
     return res.status(201).json({
       success: true,
@@ -1827,11 +1829,11 @@ const addUserReport = async (req, res) => {
   logger.info('INFO -> ADDING USER REPORT API CALLED')
   try {
     const { id } = req.userData;
-    const { 
-      report_user_id, 
+    const {
+      report_user_id,
       report_reason,
       description
-     } = req.body;
+    } = req.body;
 
     let result = await UserReports.create({
       user_id: id,

@@ -10,7 +10,7 @@ const errorHandler = require('./src/middlewares/errorHandler');
 const log = require('./src/utils/logger');
 const AWS = require('aws-sdk')
 const { s3 } = require('./src/config/aws')
-const { liveStreamGiftStore, Transaction } = require('./src/models')
+const { liveStreamGiftStore, Transaction, User, UserPrivacy } = require('./src/models')
 const axios = require('axios')
 const nms = require('./src/live_handler/index')
 const { kafka, consumer, admin } = require('./src/config/kafka')
@@ -60,11 +60,25 @@ cron.schedule('0 0 1 * *', async () => {
 
 
 
+const getAllUserAndAddUserPrivacy = async () => {
+  const users = await User.findAll({
+    attributes: ['id']
+  })
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const userPrivacy = await UserPrivacy.create({
+      user_id: user.id
+    })
+  }
+  console.log('done')
+}
 
+getAllUserAndAddUserPrivacy()
 
 
 
 const router = require("./src/routes/index");
+const { get } = require("http");
 
 const app = express();
 

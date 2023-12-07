@@ -15,6 +15,7 @@ const admin = require('./admin/index')
 const topic = require('./topic')
 const live_stream = require('./live_stream')
 const promotion = require('./promotion')
+const user_privacy = require('./user_privacy')
 
 
 router.use("/users", users);
@@ -31,6 +32,7 @@ router.use('/admin', admin)
 router.use('/topic', topic)
 router.use('/live_stream', live_stream)
 router.use('/promotion', promotion)
+router.use('/user_privacy', user_privacy)
 
 
 module.exports = router;

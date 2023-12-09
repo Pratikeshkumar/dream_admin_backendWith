@@ -201,6 +201,17 @@ const live_stream_guest_leave = async (socket, io) => {
 
 
 
+const handle_send_wheel_box = async (socket, io) => {
+    socket.on('send_wheel_box', async (data) => {
+        console.log('send_wheel_box', data)
+        data.wheel_box_id = uuid.v4();
+        data.timestamp = new Date();
+        const wheel_box_key = `live_stream_wheel_box:${data?.live_stream_id}`;
+        await redis.lpush(wheel_box_key, JSON.stringify(data));
+        let roomId = `live_stream:${data?.live_stream_id}`;
+        io.to(roomId).emit('receive_wheel_box', data);
+    });
+}
 
 
 
@@ -214,4 +225,5 @@ module.exports = {
     live_join_request_handler,
     live_stream_join_request_accept_handler,
     live_stream_guest_leave,
+    handle_send_wheel_box
 }

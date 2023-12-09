@@ -12,7 +12,8 @@ const {
   live_stream_share_handler,
   live_join_request_handler,
   live_stream_join_request_accept_handler,
-  live_stream_guest_leave
+  live_stream_guest_leave,
+  handle_send_wheel_box
 } = require('./handlers/liveStream')
 
 const onlinePeopleList = [];
@@ -34,6 +35,7 @@ module.exports = (io) => {
     live_join_request_handler(socket, io)
     live_stream_join_request_accept_handler(socket, io),
     live_stream_guest_leave(socket, io)
+    handle_send_wheel_box(socket, io)
 
 
     socket.on('online-display', (data) => {

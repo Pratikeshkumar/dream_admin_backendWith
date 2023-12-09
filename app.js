@@ -60,20 +60,6 @@ cron.schedule('0 0 1 * *', async () => {
 
 
 
-const getAllUserAndAddUserPrivacy = async () => {
-  const users = await User.findAll({
-    attributes: ['id']
-  })
-  for (let i = 0; i < users.length; i++) {
-    const user = users[i];
-    const userPrivacy = await UserPrivacy.create({
-      user_id: user.id
-    })
-  }
-  console.log('done')
-}
-
-getAllUserAndAddUserPrivacy()
 
 
 

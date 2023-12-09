@@ -18,9 +18,9 @@ const Gift = sq.define(
     video_id: {
         type: DataTypes.INTEGER,
         references: {
-            model: Video, 
+            model: Video,
             key: 'id',
-          },
+        },
     },
     reciever_id: {
         type: DataTypes.INTEGER,
@@ -28,7 +28,7 @@ const Gift = sq.define(
         references: {
             model: User,
             key: 'id'
-          }
+        }
     },
     sender_id: {
         type: DataTypes.INTEGER,
@@ -36,9 +36,10 @@ const Gift = sq.define(
         references: {
             model: User,
             key: 'id'
-          }
+        }
     },
-});
+  },
+);
 
 
 

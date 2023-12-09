@@ -1,0 +1,8 @@
+1. title => html with single tag and style;
+2. subtitle => html with single tag and style
+3. color => any color value.
+4. sound_enabled => boolean
+5. vibration_enabled => boolean
+6. largerIcon => icon that display on the right upper of the notification (remote url)
+7. bigger_picture => Main picture of the notification icon
+8. body: html with single tag and style;

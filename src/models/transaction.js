@@ -93,7 +93,7 @@ const Transaction = sq.define('transaction', {
   }
 },
 {
-    timestamps: false,
+    timestamps: true,
     freezeTableName: true,
   }
 );

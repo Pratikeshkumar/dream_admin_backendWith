@@ -25,14 +25,14 @@ const adminLogin = async (req, res) => {
 
         // Step 2: Check if the admin exists
         if (!admin) {
-            return res.status(204).json({ message: 'Admin not found' });
+            return res.status(404).json({ message: 'Admin not found' });
         }
 
         // Step 3: Compare the provided password with the stored hash
         const isValid = await bcrypt.compare(password, admin.password);
 
         if (!isValid) {
-            return res.status(203).json({ message: 'Invalid credentials' });
+            return res.status(403).json({ message: 'Invalid credentials' });
         }
 
         // Step 4: Generate and return an authentication token

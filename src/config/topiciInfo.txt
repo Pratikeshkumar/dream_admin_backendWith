@@ -1,0 +1,13 @@
+Information regarding the topic creation in kafka js for live stream:
+
+1. live_settings                // Added 03-NOV-2023 before 12:00 pm
+2. viewers_counts               // Added 03-NOV-2023 before 12:00 pm
+3. gift_handler                 // Added 03-NOV-2023 before 12:00 pm
+4. rose_handler                 // Added 03-NOV-2023 before 12:00 pm
+5. comment_handler              // Added 03-NOV-2023 before 12:00 pm
+6. multiple_people_handler      // Added 03-NOV-2023 before 12:00 pm
+7. like_counts                  // Added 03-NOV-2023 before 12:00 pm
+
+8. question_and_answer_handler  // Added 03-NOV-2023 after 2:00 pm
+9. poll_handler                 // Added 03-NOV-2023 after 2:00 pm
+

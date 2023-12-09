@@ -1,4 +1,29 @@
-const { User, Avatar, Transaction, Gift, Video, UserRelationship, Like, Message, UserInteraction, Language, Hobbies, VideoView, ProfileVisit, Occupations, MessageSubscription, CommentRose, UserFriendTransaction, UserAdminTransaction } = require("../../models");
+const {
+  User,
+  Avatar,
+  Transaction,
+  Gift,
+  Video,
+  UserRelationship,
+  Like,
+  Message,
+  UserInteraction,
+  Language,
+  Hobbies,
+  VideoView,
+  ProfileVisit,
+  Occupations,
+  UserReports,
+  UserToUserBlock,
+  UserToUserFavourite,
+  MessageSubscription,
+  CommentRose,
+  UserFriendTransaction,
+  UserAdminTransaction,
+  UserPrivacy
+} = require("../../models");
+
+
 
 const fs = require('fs');
 const errorHandler = require("../../utils/errorObject");
@@ -9,6 +34,8 @@ const cloudinary = require('../../config/cloudinary');
 const { Op, literal } = require('sequelize');
 const sequelize = require('sequelize')
 const { s3 } = require('../../config/aws');
+const { admin } = require('../../../firebaseAdmin')
+const uuid = require('uuid')
 
 
 
@@ -41,6 +68,7 @@ const signup = async (req, res, next) => {
     });
 
     created_user = JSON.parse(JSON.stringify(created_user));
+    await UserPrivacy.create({ user_id: created_user.id })
     if (!created_user) throw errorHandler("Unexpected error occured while creating user!", "badRequest");
     return res.status(201).json({
       success: true,
@@ -1104,11 +1132,6 @@ const updatePicture = async (req, res) => {
 
     const { id } = req.body;
 
-    console.log(id)
-
-    console.log(imagePath)
-
-
 
     let result = await Video.update(
       { thum: `images/${image}` },
@@ -1117,7 +1140,6 @@ const updatePicture = async (req, res) => {
 
     result = JSON.parse(JSON.stringify(result))
 
-    console.log(result)
 
 
 
@@ -1147,6 +1169,8 @@ const updatePicture = async (req, res) => {
     res.status(500).json({ message: 'error generated while updating profile picture', error })
   }
 }
+
+
 const getOccupations = async (req, res) => {
   logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
   try {
@@ -1455,8 +1479,381 @@ const Check_Username_Email = async (req, res) => {
 
 
 
+const sendNotification = async (req, res) => {
+  logger.info('INFO -> SENDING NOTIFICATION API CALLED')
+  try {
+    const {
+      title, // html with one tag and style
+      subtitle, // html with one tag and style
+      body, // html with one tag and style
+      color, // color value
+      importance, // HIGH, DEFAULT, LOW, MIN, NONE,
+      sound_enabled, // boolean,
+      vibration_enabled, // boolean
+      id // array
+    } = req.body;
+
+    const channelId = uuid.v4()
+    let largeIcon = req?.files['large_icon'][0]?.originalname;
+    let large_icon_path = req?.files['large_icon'][0]?.path
+    let bigPicture = req?.files['big_picture'][0]?.originalname;
+    let big_picture_path = req?.files['big_picture'][0]?.path
+
+    if (largeIcon) {
+      const uploadLargeIocn = {
+        Bucket: 'dreamapplication',
+        Key: `notification/${largeIcon}`,
+        Body: fs.createReadStream(large_icon_path)
+      };
+      s3.upload(uploadLargeIocn, (err, data) => {
+        if (err) {
+          logger.error('Error uploading video:', err);
+        } else {
+          logger.info('Video uploaded successfully:', data.Location);
+          fs.unlink(large_icon_path, (unlinkErr) => {
+            if (unlinkErr) {
+              logger.error('Error deleting local video file:', unlinkErr);
+            } else {
+              logger.info('Local video file deleted:', large_icon_path);
+            }
+          });
+        }
+      });
+    }
 
 
+    if (bigPicture) {
+      const uploadBigPicture = {
+        Bucket: 'dreamapplication',
+        Key: `notification/${bigPicture}`,
+        Body: fs.createReadStream(big_picture_path)
+      };
+      s3.upload(uploadBigPicture, (err, data) => {
+        if (err) {
+          logger.error('Error uploading video:', err);
+        } else {
+          logger.info('Video uploaded successfully:', data.Location);
+          fs.unlink(big_picture_path, (unlinkErr) => {
+            if (unlinkErr) {
+              logger.error('Error deleting local video file:', unlinkErr);
+            } else {
+              logger.info('Local video file deleted:', big_picture_path);
+            }
+          });
+        }
+      });
+    }
+
+
+    const large_icon = `https://dpcst9y3un003.cloudfront.net/notification/${largeIcon}`,
+      big_picture = `https://dpcst9y3un003.cloudfront.net/notification/${bigPicture}`
+
+
+
+    let result = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      attributes: ['device_token'],
+    });
+    const deviceTokens = result.map(user => user.device_token);
+
+
+
+    await admin.messaging().sendEachForMulticast({
+      tokens: deviceTokens,
+      data: {
+        notifee: JSON.stringify({
+          title: title,
+          subtitle: subtitle,
+          body: body,
+          android: {
+            channelId: channelId,
+            largeIcon: large_icon,
+            importance: `AndroidImportance.${importance}`,
+            color: color ? color : '#020202',
+            sound: sound_enabled ? 'sound' : null,
+            vibrationPattern: [300, 500],
+            style: {
+              type: AndroidStyle.BIGPICTURE,
+              picture: big_picture
+            },
+          }
+        }),
+        channelId: {
+          id: channelId,
+          name: channelId,
+          badge: true,
+          importance: `AndroidImportance.${importance}`,
+          sound: sound_enabled ? 'sound' : null,
+          vibration: vibration_enabled,
+          vibrationPattern: [300, 500],
+        }
+      }
+
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Notification sended successfully'
+    })
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const getUserShortInfo = async (req, res) => {
+  logger.info('INFO -> GETTING USER SHORT INFO API CALLED')
+  try {
+    const { ids } = req.body;
+
+    let result = await User.findAll({
+      attributes: ['id', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+
+}
+
+const getMultipleUsersDiamond = async (req, res) => {
+  logger.info('INFO -> GETTING MULTIPLE USERS DIAMOND API CALLED')
+  try {
+    const { ids } = req.body;
+
+
+    let result = await User.findAll({
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+      order: [['wallet', 'DESC']]
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const isUsersFollowings = async (req, res) => {
+  logger.info('INFO -> CHECKING USERS FOLLOWINGS API CALLED')
+  try {
+    const { id } = req.userData;
+    const { user_id } = req.params;
+
+    console.log(id, user_id, "ids")
+
+    let result = await UserRelationship.findOne({
+      where: { sender_id: id, receiver_id: user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    if (result) {
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: 'success'
+      })
+    } else {
+      res.status(200).json({
+        success: false,
+        data: result,
+        message: 'success'
+      })
+    }
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const getAllUserDiamondsByRanked = async (req, res) => {
+  logger.info('INFO -> GETTING ALL USERS DIAMOND BY RANKED API CALLED')
+  try {
+    const { page_no, page_size } = req.params;
+
+    const pageNo = parseInt(page_no);
+    const pageSize = parseInt(page_size);
+
+    // Calculate the offset for pagination
+    const offset = (pageNo - 1) * pageSize;
+
+    // Query the database with limit and offset for pagination
+    const language_result = await User.findAll({
+      limit: pageSize,
+      offset: offset,
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      order: [['wallet', 'DESC']]
+    });
+
+    // Return paginated results
+    res.json({
+      message: 'Successfully retrieved the list of data',
+      data: language_result,
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      message: 'Error occurred while getting the list of data',
+      error: error.message,
+    });
+  }
+}
+
+
+const addBlockedUser = async (req, res) => {
+  logger.info('INFO -> ADDING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    console.log(blocked_user_id, id, "ids")
+
+    let result = await UserToUserBlock.create({
+      user_id: id,
+      blocked_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const removeBlockedUser = async (req, res) => {
+  logger.info('INFO -> REMOVING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    let result = await UserToUserBlock.destroy({
+      where: { user_id: id, blocked_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addFavouriteUser = async (req, res) => {
+  logger.info('INFO -> ADDING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.create({
+      user_id: id,
+      favourite_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const removeFavouriteUser = async (req, res) => {
+  logger.info('INFO -> REMOVING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.destroy({
+      where: { user_id: id, favourite_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addUserReport = async (req, res) => {
+  logger.info('INFO -> ADDING USER REPORT API CALLED')
+  try {
+    const { id } = req.userData;
+    const {
+      report_user_id,
+      report_reason,
+      description
+    } = req.body;
+
+    let result = await UserReports.create({
+      user_id: id,
+      report_user_id,
+      report_reason,
+      description
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
 
 
 module.exports = {
@@ -1488,6 +1885,17 @@ module.exports = {
   addView,
   addProfileVisit,
   updatePicture,
+  sendNotification,
+  getOccupations,
+  getUserShortInfo,
+  getMultipleUsersDiamond,
+  isUsersFollowings,
+  getAllUserDiamondsByRanked,
+  addBlockedUser,
+  removeBlockedUser,
+  addFavouriteUser,
+  removeFavouriteUser,
+  addUserReport,
   getOccupations,
   getPurchaseCoins,
   getRewardFromVideo,
@@ -1497,5 +1905,4 @@ module.exports = {
   UserFriendSendDiamond,
   getUserFriendTransaction,
   Check_Username_Email
-
 };

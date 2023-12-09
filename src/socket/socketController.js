@@ -1,18 +1,41 @@
 const { Message } = require('../models/index');
 const logger = require('../utils/logger');
 const chatHandler = require('./handlers/chat');
-const onlineDetector = require('./handlers/onlineDetector');
 const testing = require('./handlers/testing');
 const videoCall = require('./handlers/videoCall')
+const {
+  live_stream_view_handler,
+  live_stream_like_handler,
+  live_stream_rose_handler,
+  live_stream_comment_handler,
+  live_stream_gift_handler,
+  live_stream_share_handler,
+  live_join_request_handler,
+  live_stream_join_request_accept_handler,
+  live_stream_guest_leave,
+  handle_send_wheel_box
+} = require('./handlers/liveStream')
 
 const onlinePeopleList = [];
 
 module.exports = (io) => {
+
   io.on('connection', (socket) => {
     console.log('New client connected');
 
     chatHandler(socket, io);
-    videoCall(socket, io)
+    videoCall(socket, io);
+
+    live_stream_view_handler(socket, io)
+    live_stream_like_handler(socket, io)
+    live_stream_rose_handler(socket, io)
+    live_stream_comment_handler(socket, io)
+    live_stream_gift_handler(socket, io)
+    live_stream_share_handler(socket, io)
+    live_join_request_handler(socket, io)
+    live_stream_join_request_accept_handler(socket, io),
+    live_stream_guest_leave(socket, io)
+    handle_send_wheel_box(socket, io)
 
 
     socket.on('online-display', (data) => {

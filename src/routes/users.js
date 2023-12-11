@@ -72,6 +72,7 @@ router.get('/getRewardFromMessge',userApis2.getRewardFromMessge)
 router.get('/getAllTypesRewards',userApis2.getAllTypesRewards)
 router.get('/getUserFriendTransaction',userApis2.getUserFriendTransaction)
 router.get('/Check_Username_Email',userApis2.Check_Username_Email)
+router.get('/getBlockedMeUser/:id',userApis2.getBlockedMeUser)
 
 
 

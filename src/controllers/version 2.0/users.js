@@ -1752,6 +1752,40 @@ const addBlockedUser = async (req, res) => {
   }
 }
 
+const getBlockedMeUser =  async (req, res) => {
+  try {
+   
+    const blockedUserIdToCheck = parseInt(req.params.id, 10);
+
+    // Check if there is a record where blocked_user_id is equal to the provided id
+    const blockRecord = await UserToUserBlock.findOne({
+      where: {
+        blocked_user_id: blockedUserIdToCheck,
+      },
+    });
+
+    if (blockRecord) {
+     
+      const userId = blockRecord.user_id;
+    
+
+      
+      const userData = await User.findByPk(userId, {
+        attributes: ['username', 'email','profile_pic'],
+      });
+
+     
+      res.json({ user_data: userData });
+    } else {
+      
+      res.json({ message: 'User is not blocked' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
 
 const removeBlockedUser = async (req, res) => {
   logger.info('INFO -> REMOVING BLOCKED USER API CALLED')
@@ -1904,5 +1938,6 @@ module.exports = {
   getAllTypesRewards,
   UserFriendSendDiamond,
   getUserFriendTransaction,
-  Check_Username_Email
+  Check_Username_Email,
+  getBlockedMeUser
 };

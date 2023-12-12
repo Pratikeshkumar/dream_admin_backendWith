@@ -55,6 +55,7 @@ const LiveStreamComment = require('./liveStreamComment')
 const LiveStreamRose = require('./liveStreamRose')
 const LiveStreamShare = require('./liveStreamShare')
 const UserPrivacy = require('./userPrivacy')
+const WheelLuck = require('./wheelLuck')
 
 
 
@@ -256,6 +257,9 @@ UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver
 User.hasOne(UserPrivacy, { foreignKey: 'user_id', as: 'user_privacy' })
 UserPrivacy.belongsTo(User, { foreignKey: 'user_id', as: 'user_privacy' })
 
+// wheel luck
+User.hasMany(WheelLuck, { foreignKey: 'user_id', as: 'user_wheel_luck' })
+WheelLuck.belongsTo(User, { foreignKey: 'user_id', as: 'user_wheel_luck' })
 
 
 module.exports = {
@@ -315,6 +319,6 @@ module.exports = {
   LiveStreamComment,
   LiveStreamRose,
   LiveStreamShare,
-  UserPrivacy
-  
+  UserPrivacy,
+  WheelLuck
 };

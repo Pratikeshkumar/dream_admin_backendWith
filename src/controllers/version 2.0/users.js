@@ -1752,9 +1752,9 @@ const addBlockedUser = async (req, res) => {
   }
 }
 
-const getBlockedMeUser =  async (req, res) => {
+const getBlockedMeUser = async (req, res) => {
   try {
-   
+
     const blockedUserIdToCheck = parseInt(req.params.id, 10);
 
     // Check if there is a record where blocked_user_id is equal to the provided id
@@ -1765,19 +1765,19 @@ const getBlockedMeUser =  async (req, res) => {
     });
 
     if (blockRecord) {
-     
-      const userId = blockRecord.user_id;
-    
 
-      
+      const userId = blockRecord.user_id;
+
+
+
       const userData = await User.findByPk(userId, {
-        attributes: ['username', 'email','profile_pic'],
+        attributes: ['username', 'email', 'profile_pic'],
       });
 
-     
+
       res.json({ user_data: userData });
     } else {
-      
+
       res.json({ message: 'User is not blocked' });
     }
   } catch (error) {
@@ -1785,6 +1785,36 @@ const getBlockedMeUser =  async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 }
+
+const getBlockedUserList = async (req, res) => {
+  try {
+    const blockedUserIdToCheck = parseInt(req.params.id, 10);
+    console.log(blockedUserIdToCheck,"blockedUserIdToCheckbackend")
+    const searchUser = await UserToUserBlock.findOne({
+      where: {
+        user_id: blockedUserIdToCheck
+      }
+    });
+    if (searchUser) {
+      const findId = searchUser.blocked_user_id;
+      const userData = await User.findByPk(findId, {
+        attributes: ['username', 'email', 'profile_pic']
+      })
+
+      res.json({ user_data: userData });
+    } else {
+
+      res.json({ message: 'User is not blocked' });
+    }
+
+  } catch {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+
+  }
+}
+
+
 
 
 const removeBlockedUser = async (req, res) => {
@@ -1939,5 +1969,6 @@ module.exports = {
   UserFriendSendDiamond,
   getUserFriendTransaction,
   Check_Username_Email,
-  getBlockedMeUser
+  getBlockedMeUser,
+  getBlockedUserList
 };

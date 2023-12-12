@@ -20,7 +20,7 @@ const purchaseWheelLuck = async (req, res) => {
         } = req.body;
         const ticket = []
 
-        for (let i = 0; i <= no_of_tickets; i++) {
+        for (let i = 0; i < no_of_tickets; i++) {
             const ticket_no = generateUniqueNumber()
             ticket.push(ticket_no)
         }
@@ -56,7 +56,7 @@ const getWheelLuck = async (req, res) => {
         DateFromStartingMonths.setDate(1);
 
 
-        const wheel_luck = await WheelLuck.findAll({
+        let wheel_luck = await WheelLuck.findAll({
             where: {
                 user_id: id,
                 createdAt: {
@@ -64,13 +64,17 @@ const getWheelLuck = async (req, res) => {
                     [Op.lte]: currentDate
                 }
             }
+        })
+        wheel_luck = wheel_luck.map((item) => {
+            item.ticket_no = JSON.parse(item.ticket_no.split(','))
+            return item;
         });
+
         return res.status(200).json({ success: true, message: 'Wheel luck fetched successfully', data: wheel_luck });
     } catch (error) {
         return res.status(500).json({ success: false, message: 'Something went wrong', error: error.message });
     }
 }
-
 
 
 

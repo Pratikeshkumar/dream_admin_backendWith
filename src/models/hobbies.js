@@ -11,9 +11,13 @@ const Hobbies = sq.define(
             primaryKey: true,
             autoIncrement: true
         },
-        hobbies_name: {
+        name: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        category: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     },
     {

@@ -12,7 +12,12 @@ const Tag = sq.define(
     },
     title: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+    },
+    mentionCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0, // Default value for the mention count
     },
   },
   {

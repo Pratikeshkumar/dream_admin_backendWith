@@ -153,7 +153,7 @@ const User = sq.define('users', {
     allowNull: true
   },
   hobbies: {
-    type: DataTypes.STRING,
+    type: DataTypes.JSON,
     allowNull: true
   },
   person_height: {
@@ -191,13 +191,21 @@ const User = sq.define('users', {
   twitter: {
     type: DataTypes.STRING,
     allowNull: true
+  },
+  account_type: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'basic'
+  },
+  language: {
+    type: DataTypes.JSON,
+    allowNull: true
   }
-
 },
-{
-  timestamps: false,
-  freezeTableName: true,
-});
+  {
+    timestamps: false,
+    freezeTableName: true,
+  });
 
 module.exports = User;
 

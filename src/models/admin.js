@@ -1,6 +1,8 @@
 const { sq } = require("../config/db");
 const { DataTypes } = require("sequelize");
 
+const roles = ["superadmin", "manager", "assistant manager", "admin"];
+
 const Admin = sq.define(
   "admin",
   {
@@ -26,12 +28,8 @@ const Admin = sq.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    profile_image: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
     role: {
-      type: DataTypes.STRING(255),
+      type: DataTypes.ENUM(...roles),
       allowNull: false,
     },
     active: {
@@ -40,6 +38,14 @@ const Admin = sq.define(
       values: [1, 0],
       defaultValue: 1,
     },
+    phone_number: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    gender: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
     created: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -47,6 +53,11 @@ const Admin = sq.define(
         let d = new Date();
         return d.toISOString();
       },
+    },
+    wallet: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0, 
     },
   },
   {

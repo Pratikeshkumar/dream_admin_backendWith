@@ -35,6 +35,14 @@ const PostComment = sq.define(
     likes: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    dislike: {
+      type: DataTypes.INTEGER,
+      allowNull: true
+    },
+    rose: {
+      type: DataTypes.INTEGER,
+      allowNull: true
     }
   },
 

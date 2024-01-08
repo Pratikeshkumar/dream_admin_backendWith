@@ -7,8 +7,9 @@ require('dotenv').config()
 var app = require('../app');
 var debug = require('debug')('dream-media:server');
 var http = require('http');
-const {Server} = require('socket.io')
+const { Server } = require('socket.io')
 const socketController = require('../src/socket/socketController');
+const { authenticateSocket } = require('../src/middlewares/socketAuth')
 
 
 
@@ -26,6 +27,7 @@ app.set('port', port);
 
 var server = http.createServer(app);
 const io = new Server(server)
+io.use(authenticateSocket)
 app.set('socketio', io);
 socketController(io);
 
@@ -99,7 +101,7 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
   console.log('Listening on ' + bind);
-  
+
 }
 
 module.exports = {

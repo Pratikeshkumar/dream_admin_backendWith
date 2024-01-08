@@ -1,4 +1,25 @@
-const { Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country } = require("../../models");
+const {
+  Video,
+  Comment,
+  CommentReply,
+  Tag,
+  Like,
+  User,
+  Gift,
+  NewVideo,
+  City,
+  Country,
+  VideoCountry,
+  VideoCity,
+  TaggingUser,
+  TaggingText,
+  PicturePost,
+  VideoView,
+  VideoReport,
+} = require("../../models");
+
+
+
 const cloudinary = require("../../config/cloudinary");
 const fs = require("fs");
 const logger = require("../../utils/logger");
@@ -6,24 +27,85 @@ const errorHandler = require("../../utils/errorObject");
 const sequelize = require('sequelize');
 const { sq } = require('../../config/db');
 const { s3 } = require('../../config/aws')
+const { literal } = require('sequelize')
 
 const uploadVideo = async (req, res, next) => {
-  logger.info("VERSION 2.0 -> VIDEO: CREATE VIDEO API CALLED");
-
+  logger.info("INFO -> VIDEO UPLOADING API CALLED");
   try {
     const {
       caption,
       privacy,
       allow_comment,
       allow_duet,
+      allow_stitch,
+      countries,
+      cities,
+      hashtag,
+      tag_people,
+      tagged_people_id
+
     } = req.body;
 
     const { id, email, profile_pic } = req.userData;
+
 
     const video = req.files['video'] ? req.files['video'][0].originalname : null
     const image = req.files['cover'] ? req.files['cover'][0].originalname : null
     const videoPath = req.files['video'] ? req.files['video'][0].path : null
     const imagePath = req.files['cover'] ? req.files['cover'][0].path : null
+
+
+
+
+    // CHECK WHEATHER THE TAG TEXT ARE EXISTED OR NOT IF NO THEN CREATE THE TAG, AND GET ID OF ALL TAG
+    const checkAndCreateTags = async (tagsToCheck) => {
+      const tagIds = [];
+
+      for (const tagName of tagsToCheck) {
+        try {
+          const [tag, created] = await Tag.findOrCreate({
+            where: { title: tagName },
+            defaults: { title: tagName }, // Create the tag if it doesn't exist
+          });
+
+          tagIds.push(tag.id);
+        } catch (error) {
+          logger.error(`Error while processing tag "${tagName}":`, error);
+        }
+      }
+
+      return tagIds;
+    };
+
+    const findUserIdsByUsername = async (usernames) => {
+      const userIds = [];
+
+      for (const username of usernames) {
+        try {
+          const user = await User.findOne({
+            where: { username: username },
+            attributes: ['id'],
+          });
+
+          if (user) {
+            userIds.push(user.id);
+          } else {
+            userIds.push(null); // User not found, pushing null
+          }
+        } catch (error) {
+          console.error(`Error while finding user "${username}":`, error);
+          userIds.push(null); // Pushing null in case of error
+        }
+      }
+
+      return userIds;
+    };
+
+
+
+
+
+
 
     let addVideo = await Video.create({
       video: `videos/${video}`,
@@ -33,25 +115,90 @@ const uploadVideo = async (req, res, next) => {
       allow_comments: allow_comment,
       allow_duet: allow_duet,
       description: caption,
-      allow_stitch: true,
+      allow_stitch: allow_stitch,
       view: 0,
       block: false,
       promote: false,
       like: 0,
       comment: 0,
       shared: 0,
-    });
+      privacy_type: privacy ? 'private' : 'public'
+    }); // adding into video db 
+    const videoId = addVideo.id; // getting the id of video
 
-    // const countries_data = await Country.findAll({ where: { id: countries } });
-    // await Video.addCountries(countries_data);
+    if (countries) {
+      const countriesArray = countries.split(",").map(countryId => parseInt(countryId));
+      let VideoCountry_result = await VideoCountry.bulkCreate(
+        countriesArray.map(countryId => ({
+          post_id: videoId,
+          countriesId: countryId
+        }))
+      ) // adding the video country releationship to db 
+    }
 
-    // const cities = await City.findAll({ where: { id: ciities } });
-    // await Video.addCities(cities);
+    if (cities) {
+      const citiesArray = cities.split(",").map(cityId => parseInt(cityId));
+      let CityCountry_result = await VideoCity.bulkCreate(
+        citiesArray.map(cityId => ({
+          post_id: videoId,
+          city_id: cityId
+        }))
+      ) // adding video city association in db
+    }
 
-    // addVideo = JSON.parse(JSON.stringify(addVideo));
 
 
-    res.send(addVideo)
+    if (tag_people) {
+      const TaggedPeopleUsername = tag_people.split(",").map(text => text)
+      const userId = await findUserIdsByUsername(TaggedPeopleUsername)
+      let UserVideoResult = await TaggingUser.bulkCreate(
+        userId.map(tagged_people_id => ({
+          post_id: videoId,
+          tagged_people_id: tagged_people_id
+        }))
+      ) // adding video user association in db 
+    }
+
+
+
+
+    if (tagged_people_id) {
+      const TaggedPeopleId = tagged_people_id.split(",").map(id => parseInt(id))
+      let UserVideoResult = await TaggingUser.bulkCreate(
+        TaggedPeopleId.map(tagged_people_id => ({
+          post_id: videoId,
+          tagged_people_id: tagged_people_id
+        }))
+      ) // adding video user association in db 
+
+    }
+
+
+
+
+    if (hashtag) {
+      const taggedText = hashtag.split(",",).map(text => text)
+      const tagId = await checkAndCreateTags(taggedText)
+      let UserTextResult = await TaggingText.bulkCreate(
+        tagId.map(tagged_tags => ({
+          post_id: videoId,
+          tagged_tags: tagged_tags
+        }))
+      ) // adding video text association in db
+
+
+    }
+
+
+
+
+
+    addVideo = JSON.parse(JSON.stringify(addVideo))
+
+    res.status(201).json({
+      message: 'success',
+      payload: addVideo
+    })
 
     // uploading video to aws bucket
     const uploadVideo = {
@@ -61,9 +208,16 @@ const uploadVideo = async (req, res, next) => {
     };
     s3.upload(uploadVideo, (err, data) => {
       if (err) {
-        console.error('Error uploading video:', err);
+        logger.error('Error uploading video:', err);
       } else {
-        console.log('Video uploaded successfully:', data.Location);
+        logger.info('Video uploaded successfully:', data.Location);
+        fs.unlink(videoPath, (unlinkErr) => {
+          if (unlinkErr) {
+            logger.error('Error deleting local video file:', unlinkErr);
+          } else {
+            logger.info('Local video file deleted:', videoPath);
+          }
+        });
       }
     });
 
@@ -78,16 +232,25 @@ const uploadVideo = async (req, res, next) => {
 
     s3.upload(uploadPicture, (err, data) => {
       if (err) {
-        console.error('Error uploading picture:', err);
+        logger.error('Error uploading picture:', err);
       } else {
-        console.log('picture uploaded successfully:', data.Location);
+        logger.info('picture uploaded successfully:', data.Location);
+        fs.unlink(imagePath, (unlinkErr) => {
+          if (unlinkErr) {
+            logger.error('Error deleting local video file:', unlinkErr);
+          } else {
+            logger.info('Local video file deleted:', videoPath);
+          }
+        });
       }
     });
 
 
   } catch (error) {
-    console.log(error)
+    logger.error(error)
+    res.status(500).json({ message: 'error while uploading video. Please try again after some time' })
   }
+
 
 
 
@@ -267,31 +430,49 @@ const getVideo = async (req, res, next) => {
   }
 };
 
-
-
-
 const getAllUserVideos = async (req, res, next) => {
   logger.info("VERSION 2.0 -> VIDEO: GET ALL USER VIDEOS API CALLED");
   try {
-    let videos = await Video.findAll({
-      include: [{
-        model: User,
-        attributes: ['id', 'username', 'profile_pic', 'bio', 'nickname', 'instagram', 'you_tube', 'facebook'],
-      },
-      {
-        model: Like,
-        as: 'likes',
-        attributes: ['id', 'reciever_id', 'sender_id'],
+    const page = parseInt(req.query.page, 10) || 1; // Get the requested page (default to 1 if not provided)
+    const pageSize = parseInt(req.query.pageSize, 10) || 5; // Get the number of items per page (default to 5 if not provided)
 
-      }
+    // Calculate the offset based on the page and page size
+    const offset = (page - 1) * pageSize;
+
+    // Query for random videos with pagination
+    const videos = await Video.findAndCountAll({
+      where: { block: false },
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'username', 'profile_pic', 'bio', 'nickname', 'instagram', 'you_tube', 'facebook'],
+        },
+        {
+          model: Like,
+          as: 'likes',
+          attributes: ['id', 'reciever_id', 'sender_id'],
+        },
+        {
+          model: VideoView,
+          as: 'views',
+          attributes: ['id'],
+        },
       ],
+      limit: pageSize,
+      offset,
+      order: literal('RAND()'),
     });
+
 
 
     return res.status(200).json({
       success: true,
-      message: "Successfully fetched videos!",
-      videos
+      message: "Successfully fetched random videos!",
+      videos: videos.rows,
+      totalVideos: videos.count,
+      currentPage: page,
+      pageSize: pageSize,
+
     });
   } catch (error) {
     logger.error(error);
@@ -299,12 +480,6 @@ const getAllUserVideos = async (req, res, next) => {
     return next(error);
   }
 };
-
-
-
-
-
-
 
 
 
@@ -800,6 +975,195 @@ const videoStats = async (req, res, next) => {
   }
 };
 
+const getUserPersonalInteractedVideo = async (req, res) => {
+  logger.info('INFO -> GETTING USER PERSONAL INTERACTED VIDEO')
+  try {
+    const { id } = req.userData;
+    // const result = await 
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generating while getting the list of video', error })
+  }
+}
+
+
+
+const uploadPicturePost = async (req, res) => {
+  logger.info('INFO -> UPLOADING PICTURE POST API CALLED')
+  try {
+    const {
+      caption,
+      view,
+      privacy_type,
+      like,
+      comment,
+      shared } = req.body;
+    const image = req.files['images'] ? req.files['images'][0].originalname : null
+    const imagePath = req.files['images'] ? req.files['images'][0].path : null
+    const { id } = req.userData;
+
+    // uploading image to aws bucket
+    const uploadPicture = {
+      Bucket: 'dreamapplication',
+      Key: `images/${image}`,
+      Body: fs.createReadStream(imagePath)
+    };
+
+    let result = await PicturePost.create({
+      user_id: id,
+      description: caption,
+      view: 0,
+      privacy_type,
+      like: 0,
+      comment: 0,
+      shared: 0,
+      image_url: `images/${image}`
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    console.log(result)
+
+    res.status(200).json({
+      message: 'successfully uploaded',
+      payload: result
+    })
+
+    s3.upload(uploadPicture, (err, data) => {
+      if (err) {
+        logger.error('Error uploading picture:', err);
+      } else {
+        logger.info('picture uploaded successfully:', data.Location);
+        fs.unlink(imagePath, (unlinkErr) => {
+          if (unlinkErr) {
+            logger.error('Error deleting local video file:', unlinkErr);
+          } else {
+            logger.info('Local video file deleted:', imagePath);
+          }
+        });
+      }
+    });
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading the picture post', error })
+  }
+
+}
+
+
+
+
+const getAllPicturePost = async (req, res) => {
+  logger.info('INFO -> GETTING ALL PICTURE POST API CALLED')
+  try {
+    const { user_id } = req?.params;
+
+    let result = await PicturePost.findAll({
+      where: { user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading picture post', error })
+  }
+}
+
+
+
+// for getting videoUrl on the basis of idVideo:
+
+const  getVideoUrl =  async (req, res) => {
+  const idVideo = req.params.idVideo;
+
+  try {
+    // Fetch video details based on idVideo from the Sequelize model
+    const video = await Video.findByPk(idVideo);
+
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Respond with the video details, including the videoUrl
+    res.json({ videoUrl: video.video});
+  } catch (error) {
+    console.error('Error fetching video details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+
+const makeVideoReport = async (req, res) => {
+  logger.info('INFO -> MAKE REPORT API CALLED')
+  try {
+    const {
+      videoId,
+      reporterId,
+      reason,
+      description
+    } = req.body;
+
+    let result = await VideoReport.create({
+      videoId,
+      reporterId,
+      reason,
+      description
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading Report ', error })
+  }
+}
+
+
+
+const makeReport = async () => {
+  logger.info('INFO -> MAKE REPORT API CALLED')
+  try {
+    const {
+      videoId,
+      reporterId,
+      reason,
+      description
+    } = req.body;
+
+    let result = await VideoReport.create({
+      videoId,
+      reporterId,
+      reason,
+      description
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading picture post', error })
+  }
+}
+
+
 
 module.exports = {
   uploadVideo,
@@ -819,5 +1183,13 @@ module.exports = {
   searchVideosFromProfile,
   userInvolvedVideosById,
   videoStats,
-  getMyVideos
+  getMyVideos,
+  uploadPicturePost,
+  getAllPicturePost,
+  makeVideoReport,
+  getVideoUrl,
+  makeReport
 };
+
+
+

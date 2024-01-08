@@ -6,6 +6,7 @@ const Country = sq.define('Country', {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
+    allowNull: false
   },
   name: {
     type: DataTypes.STRING,
@@ -57,9 +58,9 @@ const Country = sq.define('Country', {
   },
   wikiDataId: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
-  active: {
+  active: { 
     type: DataTypes.INTEGER,
     allowNull: false,
   },

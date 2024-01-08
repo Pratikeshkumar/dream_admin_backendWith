@@ -1074,6 +1074,31 @@ const getAllPicturePost = async (req, res) => {
   }
 }
 
+
+
+// for getting videoUrl on the basis of idVideo:
+
+const  getVideoUrl =  async (req, res) => {
+  const idVideo = req.params.idVideo;
+
+  try {
+    // Fetch video details based on idVideo from the Sequelize model
+    const video = await Video.findByPk(idVideo);
+
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Respond with the video details, including the videoUrl
+    res.json({ videoUrl: video.video});
+  } catch (error) {
+    console.error('Error fetching video details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+
 const makeVideoReport = async (req, res) => {
   logger.info('INFO -> MAKE REPORT API CALLED')
   try {
@@ -1162,6 +1187,7 @@ module.exports = {
   uploadPicturePost,
   getAllPicturePost,
   makeVideoReport,
+  getVideoUrl,
   makeReport
 };
 

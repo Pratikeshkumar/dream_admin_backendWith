@@ -162,35 +162,74 @@ const getadmin_transaction = async (req, res) => {
   }
 }
 
+
+
+
 const sendMoneyToUser = async (req, res) => {
+  const { userId, amount } = req.body;
+  console.log(userId,amount)
+
+  console.log(req.body, "datafrom backend")
+
   try {
-    const { userId, amount } = req.body;
-    console.log(amount, userId, "backend");
+    // Find the super admin by their role
+    const superadmin = await Admin.findOne({ where: { role: 'superadmin' } });
 
-    const user = await User.findByPk(userId);
-    console.log(user,"uuuuuuseeer")
+    if (!superadmin) {
+      return res.status(404).json({ message: 'Superadmin not found' });
+    }
 
-    user.wallet += parseFloat(amount);
-    await user.save();
+    // Deduct the specified amount from the super admin's wallet
+    superadmin.wallet -= parseFloat(amount);
+    await superadmin.save();
 
-    await SuperAdminUserTransaction.create({
-      diamond_value: parseFloat(amount),
-      receiver_id: user.id,
-      diamond_debited: true,
-    });
+    // Find the user by their ID
+    const user = await User.findOne({ where: { id: userId } });
 
-    // Assuming your association alias is 'superadminTransactions'
-    await user.superadminTransactions.create({
-      dimanond_value: parseFloat(amount),
-      type: 'credit',
-    });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    res.status(200).json({ message: 'Money added to user wallet successfully' });
+    // Check the user's role and add the specified amount to their wallet
+    
+      user.wallet += parseFloat(amount);
+      await user.save();
+
+      // Create a transaction record for the user
+      const userTransaction = await SuperAdminUserTransaction.create({
+        diamond_value: parseFloat(amount),
+        sender_id: superadmin.id,
+        receiver_id: user.id,
+        transaction_type: 'credit',
+
+        // 'credit' for adding money to the user's wallet
+      });
+
+      // Create a transaction record for the super admin
+      const superadminTransaction = await SuperadminTransaction.create({
+        diamond_value: parseFloat(amount),
+        receiver_id: user.id,
+        diamond_debited: true,
+      });
+
+      return res.status(200).json({
+        message: 'Money sent successfully',
+        userTransaction,
+        superadminTransaction,
+      });
+   
   } catch (error) {
-    console.error('Error adding money to user wallet:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error sending money:', error);
+    return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+
+
+
+
+
 
 
 const removeMoneyFromUser = async (req, res) => {
@@ -229,6 +268,10 @@ const removeMoneyFromUser = async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
+
+
 
 
 

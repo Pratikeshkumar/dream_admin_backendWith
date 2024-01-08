@@ -51,5 +51,5 @@ router.post('/makeReport', userAuth, videoApis2.makeReport);  //report video')
 
 router.get("/userInvolvedVideosById/:user_id", userAuth, videoApis2.userInvolvedVideosById);
 router.get("/stats/:video_id", userAuth, validate(videoValidation.videoStats), videoApis2.videoStats);
-
+router.get("/getVideoUrl/:idVideo",videoApis2.getVideoUrl);
 module.exports = router;

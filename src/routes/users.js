@@ -54,7 +54,9 @@ router.post('/removeBlockedUser', userAuth, userApis2.removeBlockedUser)
 router.post('/addFavouriteUser', userAuth, userApis2.addFavouriteUser)
 router.post('/removeFavouriteUser', userAuth, userApis2.removeFavouriteUser)
 router.post('/addUserReport', userAuth, userApis2.addUserReport)
-router.post('/UserFriendSendDiamond',userApis2.UserFriendSendDiamond)
+router.post('/UserFriendSendDiamond', userApis2.UserFriendSendDiamond)
+router.post('/addPaypalAccount', userApis2.addPaypalAccount)
+router.post('/addDataRequest', userApis2.addDataRequest)
 
 
 
@@ -64,19 +66,21 @@ router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
 router.get('/getOccupations', userApis2.getOccupations)
-router.get('/getOccupations',userApis2.getOccupations)
+router.get('/getOccupations', userApis2.getOccupations)
 router.get('/getPurchaseCoins', userApis2.getPurchaseCoins)
-router.get('/getRewardFromVideo',userApis2.getRewardFromVideo)
-router.get('/getRewardFromRoseMessage',userApis2.getRewardFromRoseMessage)
-router.get('/getRewardFromMessge',userApis2.getRewardFromMessge)
-router.get('/getAllTypesRewards',userApis2.getAllTypesRewards)
-router.get('/getUserFriendTransaction',userApis2.getUserFriendTransaction)
-router.get('/Check_Username_Email',userApis2.Check_Username_Email)
-
-
-
-
-
+router.get('/getRewardFromVideo', userApis2.getRewardFromVideo)
+router.get('/getRewardFromRoseMessage', userApis2.getRewardFromRoseMessage)
+router.get('/getRewardFromMessge', userApis2.getRewardFromMessge)
+router.get('/getAllTypesRewards', userApis2.getAllTypesRewards)
+router.get('/getUserFriendTransaction', userApis2.getUserFriendTransaction)
+router.get('/Check_Username_Email', userApis2.Check_Username_Email)
+router.get('/getBlockedMeUser/:id', userApis2.getBlockedMeUser)
+router.get('/getBlockedUserList/:id', userApis2.getBlockedUserList)
+router.get('/getPaypalAccount/:id', userApis2.getPaypalAccount)
+router.get('/checkDataStatus/:id', userApis2.checkDataStatus)
+router.get('/downloadUserData', userAuth, userApis2.downloadUserData)
+router.get('/getDataRequestStatus/:id', userApis2.getDataRequestStatus)
+router.get('/wheel_luck_user',userAuth,userApis2.wheel_luck_user)
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
 

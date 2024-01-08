@@ -357,4 +357,3 @@ module.exports = {
   getUserInteractions
 
 };
-

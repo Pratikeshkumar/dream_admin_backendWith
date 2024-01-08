@@ -20,12 +20,16 @@ const {
   CommentRose,
   UserFriendTransaction,
   UserAdminTransaction,
-  UserPrivacy
+  UserPrivacy,
+  PayPalAccount,
+  DataRequest,
+  PostComment,
+  WheelLuck
 } = require("../../models");
 
 
 
-const fs = require('fs');
+const fs = require('fs')
 const errorHandler = require("../../utils/errorObject");
 const { JWT_KEY } = process.env;
 const logger = require('../../utils/logger');
@@ -35,7 +39,13 @@ const { Op, literal } = require('sequelize');
 const sequelize = require('sequelize')
 const { s3 } = require('../../config/aws');
 const { admin } = require('../../../firebaseAdmin')
-const uuid = require('uuid')
+const uuid = require('uuid');
+const { Console } = require("console");
+
+
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
+const unlink = util.promisify(fs.unlink);
 
 
 
@@ -1753,6 +1763,7 @@ const addBlockedUser = async (req, res) => {
 }
 
 const getBlockedMeUser = async (req, res) => {
+  logger.info('INFO -> GETTING BLOCKED ME API CALLED ')
   try {
 
     const blockedUserIdToCheck = parseInt(req.params.id, 10);
@@ -1787,6 +1798,7 @@ const getBlockedMeUser = async (req, res) => {
 }
 
 const getBlockedUserList = async (req, res) => {
+  logger.info('INFO -> GETTING BLOCKED USER LIST')
   try {
     const blockedUserIdToCheck = parseInt(req.params.id, 10);
     console.log(blockedUserIdToCheck,"blockedUserIdToCheckbackend")
@@ -1920,6 +1932,193 @@ const addUserReport = async (req, res) => {
 }
 
 
+// In this I am trying to add the account of paypal and the stripe seperately so that it can we manged in a good way...
+
+
+const addPaypalAccount = async (req, res) => {
+  logger.info('INFO -> ADDING PAYPAL ACCOUNT API CALLED')
+  try {
+    const { paypalAccountId, firstName, lastName, billingAddress, email, paypalEmail ,user_id} = req.body;
+
+
+
+    // Save the data to the database using Sequelize
+    const newPayPalAccount = await PayPalAccount.create({
+      paypalAccountId,
+      firstName,
+      lastName,
+      billingAddress,
+      email,
+      paypalEmail,
+      user_id
+    });
+    console.log(newPayPalAccount,"newnewPayPalAccount")
+
+    res.status(201).json({ message: 'PayPal account added successfully', data: newPayPalAccount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const getPaypalAccount = async (req, res) => {
+  logger.info('INFO -> GETTING PAYPAL ACCOUNT API CALLED');
+  try {
+    const { id } = req.params;
+    console.log(id)
+     // Assuming you are passing user_id as a parameter
+
+    // Fetch PayPal account information from the database using Sequelize
+    const paypalAccount = await PayPalAccount.findAll({
+      where: { user_id:id },
+    });
+
+    if (!paypalAccount) {
+      return res.status(404).json({ message: 'PayPal account not found' });
+    }
+
+    res.status(200).json({ message: 'PayPal account retrieved successfully', data: paypalAccount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+// Here I am making three EndPoint :
+// dataRequest,dataStatus,dataDownload and trying to get the data_download:
+
+
+  const addDataRequest = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+
+    
+    const dataRequest = await DataRequest.create({ user_id });
+
+    res.status(200).json({ message: 'Data request initiated successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
+
+
+const getDataRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if a data request exists for the user
+    const dataRequest = await DataRequest.findOne({
+      where: { user_id:id },
+    });
+
+    if (!dataRequest) {
+      return res.status(404).json({ status: 'not_requested' });
+    }
+
+    return res.status(200).json({ status: dataRequest.status });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+const checkDataStatus= async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+
+    // Check the data processing status in the database
+    const dataRequest = await DataRequest.findOne({
+      where: { user_id: userId },
+    });
+
+    const isDataProcessed = dataRequest && dataRequest.status === 'completed';
+
+    res.status(200).json({ isDataProcessed });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const downloadUserData = async (req, res) => {
+  try {
+    const userId = req.userData.id;
+
+    console.log('userId', userId);
+
+    let video_result = await Video.findAll({
+      where: { user_id: userId }
+    });
+
+    video_result = JSON.parse(JSON.stringify(video_result));
+
+    const filePath = `src/requested_data/${req.userData.email}_data.json`;
+
+    await fs.promises.writeFile(filePath, JSON.stringify(video_result, null, 2));
+
+    const uploadUserFile = {
+      Bucket: 'dreamapplication',
+      Key: `user_downloaded_data/${req.userData.email}_data.json`,
+      Body: await readFile(filePath)
+    };
+
+    s3.upload(uploadUserFile, async (err, data) => {
+      if (err) {
+        console.error('Error uploading video:', err);
+      } else {
+        console.log('Video uploaded successfully:', data.Location);
+        // Clean up: Delete the local video file after uploading to S3
+        await unlink(filePath);
+        console.log('Local video file deleted:', filePath);
+      }
+    });
+
+    res.status(200).json({
+      message: 'success',
+      result: video_result
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `Internal Server Error: ${error.message}` });
+  }
+};
+
+//function for getting the wheel_luck ticket :
+
+
+const wheel_luck_user = async (req, res) => {
+  logger.info('INFO -> GETTING WHEEL_LUCK_USER API CALLED');
+  try {
+    const { id } = req.userData;
+
+    // Assuming you want to find wheel luck data for a specific user_id
+    const wheelLuckData = await WheelLuck.findAll({
+      where: {
+        user_id: id
+      }
+    });
+
+    res.status(200).json(wheelLuckData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
+
+
+
 module.exports = {
   signup,
   login,
@@ -1970,5 +2169,12 @@ module.exports = {
   getUserFriendTransaction,
   Check_Username_Email,
   getBlockedMeUser,
-  getBlockedUserList
+  getBlockedUserList,
+  addPaypalAccount,
+  getPaypalAccount,
+  addDataRequest,
+  getDataRequestStatus,
+  checkDataStatus,
+  downloadUserData,
+  wheel_luck_user
 };

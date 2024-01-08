@@ -56,6 +56,11 @@ const LiveStreamRose = require('./liveStreamRose')
 const LiveStreamShare = require('./liveStreamShare')
 const UserPrivacy = require('./userPrivacy')
 const WheelLuck = require('./wheelLuck')
+const PayPalAccount = require('./paypal_account')
+const StripeAccount = require('./stripe_account')
+const WithdrawalRequest = require('./withdrawal_request')
+const WithdrawalTransaction = require('./user_withdrawal_transaction')
+const DataRequest = require('./data_request')
 
 
 
@@ -99,6 +104,8 @@ Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes' });
 Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
+
+
 
 
 
@@ -261,6 +268,26 @@ UserPrivacy.belongsTo(User, { foreignKey: 'user_id', as: 'user_privacy' })
 User.hasMany(WheelLuck, { foreignKey: 'user_id', as: 'user_wheel_luck' })
 WheelLuck.belongsTo(User, { foreignKey: 'user_id', as: 'user_wheel_luck' })
 
+// payment 
+
+PayPalAccount.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(PayPalAccount, { foreignKey: 'user_id' }); 
+
+StripeAccount.belongsTo(User, { foreignKey: 'user_id' });
+
+//for Withdrawal 
+
+WithdrawalRequest.belongsTo(User, { foreignKey: 'user_id' });
+WithdrawalRequest.belongsTo(PayPalAccount, { foreignKey: 'paypal_account_id' });
+WithdrawalRequest.belongsTo(StripeAccount, { foreignKey: 'stripe_account_id' });
+WithdrawalTransaction.belongsTo(User, { foreignKey: 'user_id' });
+
+
+User.hasMany(DataRequest, { foreignKey: 'user_id' });
+DataRequest.belongsTo(User, { foreignKey: 'user_id' });
+
+
+
 
 module.exports = {
   Admin,
@@ -320,5 +347,9 @@ module.exports = {
   LiveStreamRose,
   LiveStreamShare,
   UserPrivacy,
-  WheelLuck
+  WheelLuck,
+  PayPalAccount,
+  StripeAccount,
+  WithdrawalTransaction,
+  DataRequest
 };

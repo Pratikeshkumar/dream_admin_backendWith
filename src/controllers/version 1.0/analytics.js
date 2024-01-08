@@ -13,9 +13,6 @@ const {
   UserFriendTransaction,
   UserAdminTransaction,
   SuperadminTransaction,
-
-  
-  
  } = require('../../models');
 const logger = require('../../utils/logger');
 const { Op } = require('sequelize');

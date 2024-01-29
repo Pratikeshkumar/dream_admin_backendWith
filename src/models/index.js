@@ -60,6 +60,7 @@ const PayPalAccount = require('./paypal_account')
 const StripeAccount = require('./stripe_account')
 const WithdrawalRequest = require('./withdrawal_request')
 const WithdrawalTransaction = require('./user_withdrawal_transaction')
+const videoShare=require('./video_share')
 const DataRequest = require('./data_request')
 
 
@@ -351,5 +352,6 @@ module.exports = {
   PayPalAccount,
   StripeAccount,
   WithdrawalTransaction,
+  videoShare,
   DataRequest
 };

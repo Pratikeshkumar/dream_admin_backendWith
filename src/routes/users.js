@@ -90,5 +90,8 @@ router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), 
 
 router.get('/avatar', userApis2.getAvatar)
 
+/***************** withdraw money */
+router.post('/withdraw_money_info',userAuth,userApis2.withdraw_money_info)
+/***************** withdraw money */
 
 module.exports = router

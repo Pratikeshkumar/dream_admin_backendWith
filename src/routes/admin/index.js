@@ -22,7 +22,7 @@ const admin_employee = require('./admin_employee')
 const admin_promotion = require('./admin_promotion')
 const super_admin_transaction = require('./super_admin_transaction')
 const admin_video_report = require('./admin_report')
-
+const withdraw_request=require('./admin_withdraw_request')
 
 
 
@@ -45,6 +45,6 @@ router.use('/admin_employee', admin_employee)
 router.use('/promotion',admin_promotion)
 router.use('/super_admin_transaction',super_admin_transaction)
 router.use('/admin_video_report',admin_video_report)
-
+router.use('/withdraw_request',withdraw_request)
 
 module.exports = router;

@@ -24,9 +24,9 @@ const {
   PayPalAccount,
   DataRequest,
   PostComment,
-  WheelLuck
+  WheelLuck,
 } = require("../../models");
-
+const WithdrawalRequest = require('../../models/withdrawal_request')
 
 
 const fs = require('fs')
@@ -1801,7 +1801,7 @@ const getBlockedUserList = async (req, res) => {
   logger.info('INFO -> GETTING BLOCKED USER LIST')
   try {
     const blockedUserIdToCheck = parseInt(req.params.id, 10);
-    console.log(blockedUserIdToCheck,"blockedUserIdToCheckbackend")
+    console.log(blockedUserIdToCheck, "blockedUserIdToCheckbackend")
     const searchUser = await UserToUserBlock.findOne({
       where: {
         user_id: blockedUserIdToCheck
@@ -1938,7 +1938,7 @@ const addUserReport = async (req, res) => {
 const addPaypalAccount = async (req, res) => {
   logger.info('INFO -> ADDING PAYPAL ACCOUNT API CALLED')
   try {
-    const { paypalAccountId, firstName, lastName, billingAddress, email, paypalEmail ,user_id} = req.body;
+    const { paypalAccountId, firstName, lastName, billingAddress, email, paypalEmail, user_id } = req.body;
 
 
 
@@ -1952,7 +1952,7 @@ const addPaypalAccount = async (req, res) => {
       paypalEmail,
       user_id
     });
-    console.log(newPayPalAccount,"newnewPayPalAccount")
+    console.log(newPayPalAccount, "newnewPayPalAccount")
 
     res.status(201).json({ message: 'PayPal account added successfully', data: newPayPalAccount });
   } catch (error) {
@@ -1966,11 +1966,11 @@ const getPaypalAccount = async (req, res) => {
   try {
     const { id } = req.params;
     console.log(id)
-     // Assuming you are passing user_id as a parameter
+    // Assuming you are passing user_id as a parameter
 
     // Fetch PayPal account information from the database using Sequelize
     const paypalAccount = await PayPalAccount.findAll({
-      where: { user_id:id },
+      where: { user_id: id },
     });
 
     if (!paypalAccount) {
@@ -1989,12 +1989,12 @@ const getPaypalAccount = async (req, res) => {
 // dataRequest,dataStatus,dataDownload and trying to get the data_download:
 
 
-  const addDataRequest = async (req, res) => {
+const addDataRequest = async (req, res) => {
   try {
     const { user_id } = req.body;
 
 
-    
+
     const dataRequest = await DataRequest.create({ user_id });
 
     res.status(200).json({ message: 'Data request initiated successfully.' });
@@ -2013,7 +2013,7 @@ const getDataRequestStatus = async (req, res) => {
 
     // Check if a data request exists for the user
     const dataRequest = await DataRequest.findOne({
-      where: { user_id:id },
+      where: { user_id: id },
     });
 
     if (!dataRequest) {
@@ -2031,7 +2031,7 @@ const getDataRequestStatus = async (req, res) => {
 
 
 
-const checkDataStatus= async (req, res) => {
+const checkDataStatus = async (req, res) => {
   try {
     const userId = req.params.user_id;
 
@@ -2115,6 +2115,55 @@ const wheel_luck_user = async (req, res) => {
   }
 }
 
+const withdraw_money_info = async (req, res) => {
+  logger.info('INFO -> withdraw_money_info API CALLED');
+  try {
+    const { paymentmethod, withdrawalAmount, selectedaccount } = req.body;
+
+    const { id } = req.userData;
+    console.log(selectedaccount, paymentmethod, 'selectedPaypalselectedPaypal')
+
+    let paypalAccountId;
+    let stripeAccountID
+    if (paymentmethod === 'paypal') {
+      const paypalAccount = await PayPalAccount.findOne({
+        where: {
+          email: selectedaccount
+        }
+      });
+          paypalAccountId = paypalAccount.paypalAccountId;
+    }
+
+    // if (paymentmethod === 'stripe') {
+    //   const stripeid = await StripeAccount.findOne({
+    //     where: {
+    //       email: selectedPaypal
+    //     }
+    //   })
+
+    //   return stripeid
+    // }
+
+    // console.log(paypalAccountId, 'getpaypalid')
+    const create_withdraw_money_info = await WithdrawalRequest.create({
+      user_id: id,
+      paypal_account_id: paypalAccountId,
+      stripe_account_id: paymentmethod === 'stripe' ? selectedstripe : null,
+      amount: withdrawalAmount,
+
+    });
+
+    // Respond with the created withdrawal information
+    // console.log(create_withdraw_money_info,'create_withdraw_money_info')
+    res.status(200).json(create_withdraw_money_info);
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
 
 
 
@@ -2176,5 +2225,6 @@ module.exports = {
   getDataRequestStatus,
   checkDataStatus,
   downloadUserData,
-  wheel_luck_user
+  wheel_luck_user,
+  withdraw_money_info
 };

@@ -1,6 +1,35 @@
-const { User, Avatar, Transaction, Gift, Video, UserRelationship, Like, Message, UserInteraction, Language, Hobbies, VideoView, ProfileVisit, Occupations, MessageSubscription, CommentRose, UserFriendTransaction, UserAdminTransaction } = require("../../models");
+const {
+  User,
+  Avatar,
+  Transaction,
+  Gift,
+  Video,
+  UserRelationship,
+  Like,
+  Message,
+  UserInteraction,
+  Language,
+  Hobbies,
+  VideoView,
+  ProfileVisit,
+  Occupations,
+  UserReports,
+  UserToUserBlock,
+  UserToUserFavourite,
+  MessageSubscription,
+  CommentRose,
+  UserFriendTransaction,
+  UserAdminTransaction,
+  UserPrivacy,
+  PayPalAccount,
+  DataRequest,
+  PostComment,
+  WheelLuck,
+} = require("../../models");
+const WithdrawalRequest = require('../../models/withdrawal_request')
 
-const fs = require('fs');
+
+const fs = require('fs')
 const errorHandler = require("../../utils/errorObject");
 const { JWT_KEY } = process.env;
 const logger = require('../../utils/logger');
@@ -9,6 +38,14 @@ const cloudinary = require('../../config/cloudinary');
 const { Op, literal } = require('sequelize');
 const sequelize = require('sequelize')
 const { s3 } = require('../../config/aws');
+const { admin } = require('../../../firebaseAdmin')
+const uuid = require('uuid');
+const { Console } = require("console");
+
+
+const util = require('util');
+const readFile = util.promisify(fs.readFile);
+const unlink = util.promisify(fs.unlink);
 
 
 
@@ -41,6 +78,7 @@ const signup = async (req, res, next) => {
     });
 
     created_user = JSON.parse(JSON.stringify(created_user));
+    await UserPrivacy.create({ user_id: created_user.id })
     if (!created_user) throw errorHandler("Unexpected error occured while creating user!", "badRequest");
     return res.status(201).json({
       success: true,
@@ -1104,11 +1142,6 @@ const updatePicture = async (req, res) => {
 
     const { id } = req.body;
 
-    console.log(id)
-
-    console.log(imagePath)
-
-
 
     let result = await Video.update(
       { thum: `images/${image}` },
@@ -1117,7 +1150,6 @@ const updatePicture = async (req, res) => {
 
     result = JSON.parse(JSON.stringify(result))
 
-    console.log(result)
 
 
 
@@ -1147,6 +1179,8 @@ const updatePicture = async (req, res) => {
     res.status(500).json({ message: 'error generated while updating profile picture', error })
   }
 }
+
+
 const getOccupations = async (req, res) => {
   logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
   try {
@@ -1455,6 +1489,681 @@ const Check_Username_Email = async (req, res) => {
 
 
 
+const sendNotification = async (req, res) => {
+  logger.info('INFO -> SENDING NOTIFICATION API CALLED')
+  try {
+    const {
+      title, // html with one tag and style
+      subtitle, // html with one tag and style
+      body, // html with one tag and style
+      color, // color value
+      importance, // HIGH, DEFAULT, LOW, MIN, NONE,
+      sound_enabled, // boolean,
+      vibration_enabled, // boolean
+      id // array
+    } = req.body;
+
+    const channelId = uuid.v4()
+    let largeIcon = req?.files['large_icon'][0]?.originalname;
+    let large_icon_path = req?.files['large_icon'][0]?.path
+    let bigPicture = req?.files['big_picture'][0]?.originalname;
+    let big_picture_path = req?.files['big_picture'][0]?.path
+
+    if (largeIcon) {
+      const uploadLargeIocn = {
+        Bucket: 'dreamapplication',
+        Key: `notification/${largeIcon}`,
+        Body: fs.createReadStream(large_icon_path)
+      };
+      s3.upload(uploadLargeIocn, (err, data) => {
+        if (err) {
+          logger.error('Error uploading video:', err);
+        } else {
+          logger.info('Video uploaded successfully:', data.Location);
+          fs.unlink(large_icon_path, (unlinkErr) => {
+            if (unlinkErr) {
+              logger.error('Error deleting local video file:', unlinkErr);
+            } else {
+              logger.info('Local video file deleted:', large_icon_path);
+            }
+          });
+        }
+      });
+    }
+
+
+    if (bigPicture) {
+      const uploadBigPicture = {
+        Bucket: 'dreamapplication',
+        Key: `notification/${bigPicture}`,
+        Body: fs.createReadStream(big_picture_path)
+      };
+      s3.upload(uploadBigPicture, (err, data) => {
+        if (err) {
+          logger.error('Error uploading video:', err);
+        } else {
+          logger.info('Video uploaded successfully:', data.Location);
+          fs.unlink(big_picture_path, (unlinkErr) => {
+            if (unlinkErr) {
+              logger.error('Error deleting local video file:', unlinkErr);
+            } else {
+              logger.info('Local video file deleted:', big_picture_path);
+            }
+          });
+        }
+      });
+    }
+
+
+    const large_icon = `https://dpcst9y3un003.cloudfront.net/notification/${largeIcon}`,
+      big_picture = `https://dpcst9y3un003.cloudfront.net/notification/${bigPicture}`
+
+
+
+    let result = await User.findAll({
+      where: {
+        id: {
+          [Op.in]: ids,
+        },
+      },
+      attributes: ['device_token'],
+    });
+    const deviceTokens = result.map(user => user.device_token);
+
+
+
+    await admin.messaging().sendEachForMulticast({
+      tokens: deviceTokens,
+      data: {
+        notifee: JSON.stringify({
+          title: title,
+          subtitle: subtitle,
+          body: body,
+          android: {
+            channelId: channelId,
+            largeIcon: large_icon,
+            importance: `AndroidImportance.${importance}`,
+            color: color ? color : '#020202',
+            sound: sound_enabled ? 'sound' : null,
+            vibrationPattern: [300, 500],
+            style: {
+              type: AndroidStyle.BIGPICTURE,
+              picture: big_picture
+            },
+          }
+        }),
+        channelId: {
+          id: channelId,
+          name: channelId,
+          badge: true,
+          importance: `AndroidImportance.${importance}`,
+          sound: sound_enabled ? 'sound' : null,
+          vibration: vibration_enabled,
+          vibrationPattern: [300, 500],
+        }
+      }
+
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'Notification sended successfully'
+    })
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const getUserShortInfo = async (req, res) => {
+  logger.info('INFO -> GETTING USER SHORT INFO API CALLED')
+  try {
+    const { ids } = req.body;
+
+    let result = await User.findAll({
+      attributes: ['id', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+
+}
+
+const getMultipleUsersDiamond = async (req, res) => {
+  logger.info('INFO -> GETTING MULTIPLE USERS DIAMOND API CALLED')
+  try {
+    const { ids } = req.body;
+
+
+    let result = await User.findAll({
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      where: { id: ids },
+      order: [['wallet', 'DESC']]
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const isUsersFollowings = async (req, res) => {
+  logger.info('INFO -> CHECKING USERS FOLLOWINGS API CALLED')
+  try {
+    const { id } = req.userData;
+    const { user_id } = req.params;
+
+    console.log(id, user_id, "ids")
+
+    let result = await UserRelationship.findOne({
+      where: { sender_id: id, receiver_id: user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    if (result) {
+      res.status(200).json({
+        success: true,
+        data: result,
+        message: 'success'
+      })
+    } else {
+      res.status(200).json({
+        success: false,
+        data: result,
+        message: 'success'
+      })
+    }
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const getAllUserDiamondsByRanked = async (req, res) => {
+  logger.info('INFO -> GETTING ALL USERS DIAMOND BY RANKED API CALLED')
+  try {
+    const { page_no, page_size } = req.params;
+
+    const pageNo = parseInt(page_no);
+    const pageSize = parseInt(page_size);
+
+    // Calculate the offset for pagination
+    const offset = (pageNo - 1) * pageSize;
+
+    // Query the database with limit and offset for pagination
+    const language_result = await User.findAll({
+      limit: pageSize,
+      offset: offset,
+      attributes: ['id', 'wallet', 'nickname', 'profile_pic', 'username'],
+      order: [['wallet', 'DESC']]
+    });
+
+    // Return paginated results
+    res.json({
+      message: 'Successfully retrieved the list of data',
+      data: language_result,
+    });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({
+      message: 'Error occurred while getting the list of data',
+      error: error.message,
+    });
+  }
+}
+
+
+const addBlockedUser = async (req, res) => {
+  logger.info('INFO -> ADDING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    console.log(blocked_user_id, id, "ids")
+
+    let result = await UserToUserBlock.create({
+      user_id: id,
+      blocked_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const getBlockedMeUser = async (req, res) => {
+  logger.info('INFO -> GETTING BLOCKED ME API CALLED ')
+  try {
+
+    const blockedUserIdToCheck = parseInt(req.params.id, 10);
+
+    // Check if there is a record where blocked_user_id is equal to the provided id
+    const blockRecord = await UserToUserBlock.findOne({
+      where: {
+        blocked_user_id: blockedUserIdToCheck,
+      },
+    });
+
+    if (blockRecord) {
+
+      const userId = blockRecord.user_id;
+
+
+
+      const userData = await User.findByPk(userId, {
+        attributes: ['username', 'email', 'profile_pic'],
+      });
+
+
+      res.json({ user_data: userData });
+    } else {
+
+      res.json({ message: 'User is not blocked' });
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const getBlockedUserList = async (req, res) => {
+  logger.info('INFO -> GETTING BLOCKED USER LIST')
+  try {
+    const blockedUserIdToCheck = parseInt(req.params.id, 10);
+    console.log(blockedUserIdToCheck, "blockedUserIdToCheckbackend")
+    const searchUser = await UserToUserBlock.findOne({
+      where: {
+        user_id: blockedUserIdToCheck
+      }
+    });
+    if (searchUser) {
+      const findId = searchUser.blocked_user_id;
+      const userData = await User.findByPk(findId, {
+        attributes: ['username', 'email', 'profile_pic']
+      })
+
+      res.json({ user_data: userData });
+    } else {
+
+      res.json({ message: 'User is not blocked' });
+    }
+
+  } catch {
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+
+  }
+}
+
+
+
+
+const removeBlockedUser = async (req, res) => {
+  logger.info('INFO -> REMOVING BLOCKED USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { blocked_user_id } = req.body;
+
+    let result = await UserToUserBlock.destroy({
+      where: { user_id: id, blocked_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addFavouriteUser = async (req, res) => {
+  logger.info('INFO -> ADDING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.create({
+      user_id: id,
+      favourite_user_id
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+const removeFavouriteUser = async (req, res) => {
+  logger.info('INFO -> REMOVING FAVOURITE USER API CALLED')
+  try {
+    const { id } = req.userData;
+    const { favourite_user_id } = req.body;
+
+    let result = await UserToUserFavourite.destroy({
+      where: { user_id: id, favourite_user_id }
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+const addUserReport = async (req, res) => {
+  logger.info('INFO -> ADDING USER REPORT API CALLED')
+  try {
+    const { id } = req.userData;
+    const {
+      report_user_id,
+      report_reason,
+      description
+    } = req.body;
+
+    let result = await UserReports.create({
+      user_id: id,
+      report_user_id,
+      report_reason,
+      description
+    })
+    result = JSON.parse(JSON.stringify(result))
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: 'success'
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'Error generated while processing your request' })
+  }
+}
+
+
+// In this I am trying to add the account of paypal and the stripe seperately so that it can we manged in a good way...
+
+
+const addPaypalAccount = async (req, res) => {
+  logger.info('INFO -> ADDING PAYPAL ACCOUNT API CALLED')
+  try {
+    const { paypalAccountId, firstName, lastName, billingAddress, email, paypalEmail, user_id } = req.body;
+
+
+
+    // Save the data to the database using Sequelize
+    const newPayPalAccount = await PayPalAccount.create({
+      paypalAccountId,
+      firstName,
+      lastName,
+      billingAddress,
+      email,
+      paypalEmail,
+      user_id
+    });
+    console.log(newPayPalAccount, "newnewPayPalAccount")
+
+    res.status(201).json({ message: 'PayPal account added successfully', data: newPayPalAccount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const getPaypalAccount = async (req, res) => {
+  logger.info('INFO -> GETTING PAYPAL ACCOUNT API CALLED');
+  try {
+    const { id } = req.params;
+    console.log(id)
+    // Assuming you are passing user_id as a parameter
+
+    // Fetch PayPal account information from the database using Sequelize
+    const paypalAccount = await PayPalAccount.findAll({
+      where: { user_id: id },
+    });
+
+    if (!paypalAccount) {
+      return res.status(404).json({ message: 'PayPal account not found' });
+    }
+
+    res.status(200).json({ message: 'PayPal account retrieved successfully', data: paypalAccount });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+// Here I am making three EndPoint :
+// dataRequest,dataStatus,dataDownload and trying to get the data_download:
+
+
+const addDataRequest = async (req, res) => {
+  try {
+    const { user_id } = req.body;
+
+
+
+    const dataRequest = await DataRequest.create({ user_id });
+
+    res.status(200).json({ message: 'Data request initiated successfully.' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+
+
+
+const getDataRequestStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if a data request exists for the user
+    const dataRequest = await DataRequest.findOne({
+      where: { user_id: id },
+    });
+
+    if (!dataRequest) {
+      return res.status(404).json({ status: 'not_requested' });
+    }
+
+    return res.status(200).json({ status: dataRequest.status });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+
+
+
+const checkDataStatus = async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+
+    // Check the data processing status in the database
+    const dataRequest = await DataRequest.findOne({
+      where: { user_id: userId },
+    });
+
+    const isDataProcessed = dataRequest && dataRequest.status === 'completed';
+
+    res.status(200).json({ isDataProcessed });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const downloadUserData = async (req, res) => {
+  try {
+    const userId = req.userData.id;
+
+    console.log('userId', userId);
+
+    let video_result = await Video.findAll({
+      where: { user_id: userId }
+    });
+
+    video_result = JSON.parse(JSON.stringify(video_result));
+
+    const filePath = `src/requested_data/${req.userData.email}_data.json`;
+
+    await fs.promises.writeFile(filePath, JSON.stringify(video_result, null, 2));
+
+    const uploadUserFile = {
+      Bucket: 'dreamapplication',
+      Key: `user_downloaded_data/${req.userData.email}_data.json`,
+      Body: await readFile(filePath)
+    };
+
+    s3.upload(uploadUserFile, async (err, data) => {
+      if (err) {
+        console.error('Error uploading video:', err);
+      } else {
+        console.log('Video uploaded successfully:', data.Location);
+        // Clean up: Delete the local video file after uploading to S3
+        await unlink(filePath);
+        console.log('Local video file deleted:', filePath);
+      }
+    });
+
+    res.status(200).json({
+      message: 'success',
+      result: video_result
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: `Internal Server Error: ${error.message}` });
+  }
+};
+
+//function for getting the wheel_luck ticket :
+
+
+const wheel_luck_user = async (req, res) => {
+  logger.info('INFO -> GETTING WHEEL_LUCK_USER API CALLED');
+  try {
+    const { id } = req.userData;
+
+    // Assuming you want to find wheel luck data for a specific user_id
+    const wheelLuckData = await WheelLuck.findAll({
+      where: {
+        user_id: id
+      }
+    });
+
+    res.status(200).json(wheelLuckData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
+const withdraw_money_info = async (req, res) => {
+  logger.info('INFO -> withdraw_money_info API CALLED');
+  try {
+    const { paymentmethod, withdrawalAmount, selectedaccount } = req.body;
+
+    const { id } = req.userData;
+    console.log(selectedaccount, paymentmethod, 'selectedPaypalselectedPaypal')
+
+    let paypalAccountId;
+    let stripeAccountID
+    if (paymentmethod === 'paypal') {
+      const paypalAccount = await PayPalAccount.findOne({
+        where: {
+          email: selectedaccount
+        }
+      });
+          paypalAccountId = paypalAccount.paypalAccountId;
+    }
+
+    // if (paymentmethod === 'stripe') {
+    //   const stripeid = await StripeAccount.findOne({
+    //     where: {
+    //       email: selectedPaypal
+    //     }
+    //   })
+
+    //   return stripeid
+    // }
+
+    // console.log(paypalAccountId, 'getpaypalid')
+    const create_withdraw_money_info = await WithdrawalRequest.create({
+      user_id: id,
+      paypal_account_id: paypalAccountId,
+      stripe_account_id: paymentmethod === 'stripe' ? selectedstripe : null,
+      amount: withdrawalAmount,
+
+    });
+
+    // Respond with the created withdrawal information
+    // console.log(create_withdraw_money_info,'create_withdraw_money_info')
+    res.status(200).json(create_withdraw_money_info);
+
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+}
+
 
 
 
@@ -1488,6 +2197,17 @@ module.exports = {
   addView,
   addProfileVisit,
   updatePicture,
+  sendNotification,
+  getOccupations,
+  getUserShortInfo,
+  getMultipleUsersDiamond,
+  isUsersFollowings,
+  getAllUserDiamondsByRanked,
+  addBlockedUser,
+  removeBlockedUser,
+  addFavouriteUser,
+  removeFavouriteUser,
+  addUserReport,
   getOccupations,
   getPurchaseCoins,
   getRewardFromVideo,
@@ -1496,6 +2216,15 @@ module.exports = {
   getAllTypesRewards,
   UserFriendSendDiamond,
   getUserFriendTransaction,
-  Check_Username_Email
-
+  Check_Username_Email,
+  getBlockedMeUser,
+  getBlockedUserList,
+  addPaypalAccount,
+  getPaypalAccount,
+  addDataRequest,
+  getDataRequestStatus,
+  checkDataStatus,
+  downloadUserData,
+  wheel_luck_user,
+  withdraw_money_info
 };

@@ -1,4 +1,25 @@
-const { Video, Comment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost,VideoReport} = require("../../models");
+const {
+  Video,
+  Comment,
+  CommentReply,
+  Tag,
+  Like,
+  User,
+  Gift,
+  NewVideo,
+  City,
+  Country,
+  VideoCountry,
+  VideoCity,
+  TaggingUser,
+  TaggingText,
+  PicturePost,
+  VideoView,
+  VideoReport,
+} = require("../../models");
+
+
+
 const cloudinary = require("../../config/cloudinary");
 const fs = require("fs");
 const logger = require("../../utils/logger");
@@ -6,7 +27,7 @@ const errorHandler = require("../../utils/errorObject");
 const sequelize = require('sequelize');
 const { sq } = require('../../config/db');
 const { s3 } = require('../../config/aws')
-const {literal} = require('sequelize')
+const { literal } = require('sequelize')
 
 const uploadVideo = async (req, res, next) => {
   logger.info("INFO -> VIDEO UPLOADING API CALLED");
@@ -420,6 +441,7 @@ const getAllUserVideos = async (req, res, next) => {
 
     // Query for random videos with pagination
     const videos = await Video.findAndCountAll({
+      where: { block: false },
       include: [
         {
           model: User,
@@ -430,11 +452,18 @@ const getAllUserVideos = async (req, res, next) => {
           as: 'likes',
           attributes: ['id', 'reciever_id', 'sender_id'],
         },
+        {
+          model: VideoView,
+          as: 'views',
+          attributes: ['id'],
+        },
       ],
       limit: pageSize,
       offset,
-      order: literal('RAND()'), 
+      order: literal('RAND()'),
     });
+
+
 
     return res.status(200).json({
       success: true,
@@ -443,6 +472,7 @@ const getAllUserVideos = async (req, res, next) => {
       totalVideos: videos.count,
       currentPage: page,
       pageSize: pageSize,
+
     });
   } catch (error) {
     logger.error(error);
@@ -1045,6 +1075,30 @@ const getAllPicturePost = async (req, res) => {
 }
 
 
+
+// for getting videoUrl on the basis of idVideo:
+
+const  getVideoUrl =  async (req, res) => {
+  const idVideo = req.params.idVideo;
+
+  try {
+    // Fetch video details based on idVideo from the Sequelize model
+    const video = await Video.findByPk(idVideo);
+
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found' });
+    }
+
+    // Respond with the video details, including the videoUrl
+    res.json({ videoUrl: video.video});
+  } catch (error) {
+    console.error('Error fetching video details:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+
+
 const makeVideoReport = async (req, res) => {
   logger.info('INFO -> MAKE REPORT API CALLED')
   try {
@@ -1077,6 +1131,40 @@ const makeVideoReport = async (req, res) => {
 }
 
 
+
+const makeReport = async () => {
+  logger.info('INFO -> MAKE REPORT API CALLED')
+  try {
+    const {
+      videoId,
+      reporterId,
+      reason,
+      description
+    } = req.body;
+
+    let result = await VideoReport.create({
+      videoId,
+      reporterId,
+      reason,
+      description
+    })
+
+    result = JSON.parse(JSON.stringify(result))
+
+    
+    res.status(200).json({
+      message: 'success',
+      payload: result
+    })
+
+  } catch (error) {
+    logger.error(error)
+    res.status(500).json({ message: 'error generated while uploading picture post', error })
+  }
+}
+
+
+
 module.exports = {
   uploadVideo,
   allVideos,
@@ -1098,9 +1186,10 @@ module.exports = {
   getMyVideos,
   uploadPicturePost,
   getAllPicturePost,
-  makeVideoReport
+  makeVideoReport,
+  getVideoUrl,
+  makeReport
 };
 
 
-const user = require('assert')
 

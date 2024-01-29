@@ -32,13 +32,36 @@ const Language = require('./language')
 const VideoView = require('./video_view')
 const PicturePost = require('./picture_post')
 const Occupations = require('./occupations')
-const GiftListing = require('./gift_listing')
+const Topic = require('./topic')
+const LiveSettings = require('./live_settings')
 const Promotion = require('./promotions')
+const GiftListing = require('./gift_listing')
+const liveStreamGiftStore = require('./liveStreamGiftStore')
+// const VideoReport = require('./video_report')
+const UserReport = require('./UsersReport')
+const UserToUserBlock = require('./user_to_user_block')
+const UserToUserFavourite = require('./user_to_user_favourite')
 const SuperadminTransaction = require('./superadmin_transaction');
 const UserAdminTransaction = require('./admin_user_transaction')
-const SuperAdminUserTransaction= require('./superAdmin_user_app_transaction')
+const SuperAdminUserTransaction = require('./superAdmin_user_app_transaction')
 const VideoReport = require('./VideoReport')
 const UserFriendTransaction = require('./gift_user_friend_transation')
+const HighestUsersDiamondsData = require('./highest_users_diamond_data')
+
+const LiveStreamViewers = require('./liveStreamViewers')
+const LiveStreamLike = require('./liveStreamLike')
+const LiveStreamGift = require('./liveStreamGift')
+const LiveStreamComment = require('./liveStreamComment')
+const LiveStreamRose = require('./liveStreamRose')
+const LiveStreamShare = require('./liveStreamShare')
+const UserPrivacy = require('./userPrivacy')
+const WheelLuck = require('./wheelLuck')
+const PayPalAccount = require('./paypal_account')
+const StripeAccount = require('./stripe_account')
+const WithdrawalRequest = require('./withdrawal_request')
+const WithdrawalTransaction = require('./user_withdrawal_transaction')
+const videoShare=require('./video_share')
+const DataRequest = require('./data_request')
 
 
 
@@ -47,7 +70,7 @@ CommentRose.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentRose.belongsTo(Video, { foreignKey: 'video_id', as: 'comment_rose_video' });
 CommentRose.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' })
 
-Video.hasMany(CommentRose, { foreignKey: 'video_id', as: 'comment_rose_video', onDelete: 'CASCADE' });
+
 
 User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
@@ -55,9 +78,8 @@ User.hasMany(Transaction, { foreignKey: 'user_id', sourceKey: 'id' })
 
 Gift.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Gift.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
+Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 
-// Video.hasMany(Gift, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 
 
@@ -66,15 +88,25 @@ Gift.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE'
 
 Like.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 Like.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
-Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
+Like.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
+
+
+Video.hasMany(VideoView, { foreignKey: 'video_id', as: 'views' })
+VideoView.belongsTo(Video, { foreignKey: 'video_id', as: 'views' })
+
+User.hasMany(VideoView)
+VideoView.belongsTo(User)
+
 
 
 
 User.hasMany(Video, { foreignKey: "user_id" });
-Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes', onDelete: 'CASCADE' });
+Video.hasMany(Like, { foreignKey: 'video_id', as: 'likes' });
 Video.belongsTo(User, { foreignKey: "user_id" });
 User.belongsToMany(User, { as: 'Followers', through: UserRelationship, foreignKey: 'receiver_id' });
 User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKey: 'sender_id' });
+
+
 
 
 
@@ -86,8 +118,7 @@ PostComment.belongsTo(User, {
 })
 PostComment.belongsTo(Video, {
   foreignKey: 'video_id',
-  as: 'video',
-  onDelete: 'CASCADE'
+  as: 'video'
 })
 PostCommentReply.belongsTo(User, {
   foreignKey: 'user_id',
@@ -97,25 +128,22 @@ PostCommentReply.belongsTo(User, {
 PostCommentReply.belongsTo(Video, {
   foreignKey: 'video_id',
   as: 'video',
-
 });
-// Video.hasMany(PostCommentReply, { foreignKey: 'video_id', as: 'video', onDelete: 'CASCADE' });
 
 PostCommentReply.belongsTo(PostComment, {
   foreignKey: 'parent_comment_id',
   as: 'parentComment',
-
 });
 
-PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies', onDelete: 'CASCADE' });
+PostComment.hasMany(PostCommentReply, { foreignKey: 'parent_comment_id', as: 'replies' });
 
-PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes', onDelete: 'CASCADE' });
+PostComment.hasMany(CommentLike, { foreignKey: 'comment_id', as: 'comment_likes' });
 CommentLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
 CommentLike.belongsTo(PostComment, { foreignKey: 'comment_id', as: 'comment' });
 
-PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes', onDelete: 'CASCADE' });
+PostComment.hasMany(CommentDisLike, { foreignKey: 'comment_id', as: 'comment_dislikes' });
 CommentDisLike.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 CommentDisLike.belongsTo(User, { foreignKey: 'reciever_id', as: 'receiver' });
 CommentDisLike.belongsTo(Video, { foreignKey: 'video_id', as: 'video' });
@@ -175,21 +203,14 @@ VideoCity.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCity.belongsTo(City, { foreignKey: 'city_id', as: 'city' });
 VideoCountry.belongsTo(Video, { foreignKey: 'post_id', as: 'video' });
 VideoCountry.belongsTo(Country, { foreignKey: 'countriesId', as: 'country' });
-// User.hasMany(UserInteraction)
-// UserInteraction.belongsTo(User)
-User.hasMany(UserInteraction, { foreignKey: 'user_id' });
-UserInteraction.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(UserInteraction)
+UserInteraction.belongsTo(User)
 
 
 
-Video.hasMany(VideoView, { foreignKey: 'video_id', as: 'views' });
-VideoView.belongsTo(Video, { foreignKey: 'video_id', as: 'views' })
 
-
-
-Video.hasMany(PostComment, { foreignKey: 'video_id', as: 'comments', onDelete: 'CASCADE' });
-PostComment.belongsTo(Video, { foreignKey: 'video_id' });
-
+User.hasMany(LiveSettings, { foreignKey: 'user_id', as: 'user' })
+LiveSettings.belongsTo(User, { foreignKey: 'user_id', as: 'user' })
 
 
 User.hasMany(Promotion, { foreignKey: 'user_id' })
@@ -197,6 +218,21 @@ Promotion.belongsTo(User, { foreignKey: 'user_id' })
 
 Video.hasMany(Promotion, { foreignKey: 'video_id' })
 Promotion.belongsTo(Video, { foreignKey: 'video_id' })
+
+
+
+User.hasMany(VideoReport, { foreignKey: 'reporterId' })
+VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
+Video.hasMany(VideoReport, { foreignKey: 'videoId' })
+VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
+
+// UserReport,
+// UserToUserBlock,
+// UserToUserReport
+
+
+
+
 
 
 Admin.hasMany(SuperadminTransaction, {
@@ -218,10 +254,39 @@ VideoReport.belongsTo(User, { foreignKey: 'reporterId' })
 Video.hasMany(VideoReport, { foreignKey: 'videoId' })
 VideoReport.belongsTo(Video, { foreignKey: 'videoId' })
 
-Transaction.belongsTo(User, { foreignKey: 'user_id'});
+Transaction.belongsTo(User, { foreignKey: 'user_id' });
 
 UserFriendTransaction.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 UserFriendTransaction.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+
+
+
+// user privacy of the users
+User.hasOne(UserPrivacy, { foreignKey: 'user_id', as: 'user_privacy' })
+UserPrivacy.belongsTo(User, { foreignKey: 'user_id', as: 'user_privacy' })
+
+// wheel luck
+User.hasMany(WheelLuck, { foreignKey: 'user_id', as: 'user_wheel_luck' })
+WheelLuck.belongsTo(User, { foreignKey: 'user_id', as: 'user_wheel_luck' })
+
+// payment 
+
+PayPalAccount.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(PayPalAccount, { foreignKey: 'user_id' }); 
+
+StripeAccount.belongsTo(User, { foreignKey: 'user_id' });
+
+//for Withdrawal 
+
+WithdrawalRequest.belongsTo(User, { foreignKey: 'user_id' });
+WithdrawalRequest.belongsTo(PayPalAccount, { foreignKey: 'paypal_account_id' });
+WithdrawalRequest.belongsTo(StripeAccount, { foreignKey: 'stripe_account_id' });
+WithdrawalTransaction.belongsTo(User, { foreignKey: 'user_id' });
+
+
+User.hasMany(DataRequest, { foreignKey: 'user_id' });
+DataRequest.belongsTo(User, { foreignKey: 'user_id' });
+
 
 
 
@@ -260,10 +325,33 @@ module.exports = {
   VideoView,
   PicturePost,
   Occupations,
+  Topic,
+  LiveSettings,
+  Promotion,
   GiftListing,
+  liveStreamGiftStore,
+  VideoReport,
+  UserReport,
+  UserToUserBlock,
+  UserToUserFavourite,
   Promotion,
   SuperadminTransaction,
   UserAdminTransaction,
   VideoReport,
-  UserFriendTransaction
+  UserFriendTransaction,
+  SuperAdminUserTransaction,
+  HighestUsersDiamondsData,
+  LiveStreamViewers,
+  LiveStreamLike,
+  LiveStreamGift,
+  LiveStreamComment,
+  LiveStreamRose,
+  LiveStreamShare,
+  UserPrivacy,
+  WheelLuck,
+  PayPalAccount,
+  StripeAccount,
+  WithdrawalTransaction,
+  videoShare,
+  DataRequest
 };

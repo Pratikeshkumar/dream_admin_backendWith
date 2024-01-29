@@ -12,6 +12,11 @@ const analytics = require('./analytics')
 const message_subscription = require('./messageSubscription')
 const payment = require('./payments')
 const admin = require('./admin/index')
+const topic = require('./topic')
+const live_stream = require('./live_stream')
+const promotion = require('./promotion')
+const user_privacy = require('./user_privacy')
+const wheel_luck = require('./wheel_luck')
 
 
 router.use("/users", users);
@@ -25,6 +30,11 @@ router.use('/analytics', analytics)
 router.use('/message_subscription', message_subscription)
 router.use('/payments', payment)
 router.use('/admin', admin)
+router.use('/topic', topic)
+router.use('/live_stream', live_stream)
+router.use('/promotion', promotion)
+router.use('/user_privacy', user_privacy)
+router.use('/wheel_luck', wheel_luck)
 
 
 module.exports = router;

@@ -8,8 +8,10 @@
 
 
 const logger = require("../../utils/logger");
-const { User, Video, UserInteraction, VideoView, PostComment, PicturePost } = require("../../models");
+const { User, Video, UserInteraction, VideoView, PostComment, PicturePost, Like, Gift } = require("../../models");
 const { Sequelize, Op } = require('sequelize');
+const videoshare = require('../../models/video_share')
+const { param } = require("../../routes/users");
 
 
 // const getUsers = async (req, res) => {
@@ -79,43 +81,77 @@ const { Sequelize, Op } = require('sequelize');
 //     });
 //   }
 // };
+
+
+
+// const getBasicUsers = async (req, res) => {
+//   logger.info("INFO -> GETTING BasicUSERS API CALLED");
+//   try {
+//     // Retrieve all users without pagination
+
+//     const users = await User.findAll({
+//       where: {
+//         account_type: 'basic',
+//       },
+//     });
+
+//     res.status(200).json({
+//       message: "Users retrieved successfully",
+//       data: users,
+//     });
+//   } catch (error) {
+//     logger.error(error);
+//     res.status(500).json({
+//       message: "Error generated while processing your request",
+//       error: error.message,
+//     });
+//   }
+// };
 const getBasicUsers = async (req, res) => {
   logger.info("INFO -> GETTING BasicUSERS API CALLED");
+
+  const page = req.query.page || 1; // Default to page 1 if not specified
+  const itemsPerPage = 10; // Number of users per page
+  const searchQuery = req.query.search || ''; // Get the search term from the query parameters
+  const offset = (page - 1) * itemsPerPage;
+
   try {
-    // Retrieve all users without pagination
+    let whereCondition = {}; // Define an empty object for the WHERE condition
+    if (searchQuery !== '') {
+      whereCondition = {
+        [Sequelize.Op.or]: [
+          { username: { [Sequelize.Op.like]: `%${searchQuery}%` } },
+          { email: { [Sequelize.Op.like]: `%${searchQuery}%` } }
+        ]
+      };
+    }
     const users = await User.findAll({
+      where: {
+        account_type: 'basic',
+      },
+      where: whereCondition, // Apply the WHERE condition for filtering
+      offset,
+      limit: itemsPerPage,
+    });
+
+    const totalUsers = await User.count({
       where: {
         account_type: 'basic',
       },
     });
 
-    res.status(200).json({
+    const response = {
       message: "Users retrieved successfully",
       data: users,
-    });
-  } catch (error) {
-    logger.error(error);
-    res.status(500).json({
-      message: "Error generated while processing your request",
-      error: error.message,
-    });
-  }
-};
-
-const getPremiumUsers = async (req, res) => {
-  logger.info("INFO -> GETTING BasicUSERS API CALLED");
-  try {
-    // Retrieve all users without pagination
-    const users = await User.findAll({
-      where: {
-        account_type: 'premium',
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / itemsPerPage),
+        totalUsers,
+        itemsPerPage,
       },
-    });
-
-    res.status(200).json({
-      message: "Users retrieved successfully",
-      data: users,
-    });
+    };
+    // console.log(response.pagination,'paginationpagination')
+    res.status(200).json(response);
   } catch (error) {
     logger.error(error);
     res.status(500).json({
@@ -124,6 +160,34 @@ const getPremiumUsers = async (req, res) => {
     });
   }
 };
+
+
+
+
+
+
+// const getPremiumUsers = async (req, res) => {
+//   logger.info("INFO -> GETTING BasicUSERS API CALLED");
+//   try {
+//     // Retrieve all users without pagination
+//     const users = await User.findAll({
+//       where: {
+//         account_type: 'premium',
+//       },
+//     });
+
+//     res.status(200).json({
+//       message: "Users retrieved successfully",
+//       data: users,
+//     });
+//   } catch (error) {
+//     logger.error(error);
+//     res.status(500).json({
+//       message: "Error generated while processing your request",
+//       error: error.message,
+//     });
+//   }
+// };
 // const getUsers = async (req, res) => {
 //   logger.info("INFO -> GETTING USERS API CALLED");
 //   try {
@@ -273,7 +337,7 @@ const getPremiumUsers = async (req, res) => {
 const updateUserActiveStatus = async (req, res) => {
   const userId = req.params.id;
   const newActiveStatus = req.body.isActive;
-  const userRole = req.userData.role; 
+  const userRole = req.userData.role;
   console.log(userRole)
   try {
     const user = await User.findByPk(userId);
@@ -487,6 +551,55 @@ const getUsers = async (req, res) => {
   }
 };
 
+const getPremiumUsers = async (req, res) => {
+  logger.info("Premium API Called")
+  const page = req.query.page || 1
+  const itemsPerPage = 4;
+  const searchQuery = req.query.search || ''; // Get the search term from the query parameters
+  // console.log(page,'page')
+  try {
+    let searchcondition = {}
+    if (searchQuery !== '') {
+      searchcondition = {
+        [Sequelize.op.or]: [
+          { email: { [Sequelize.Op.like]: `%${searchQuery}%` } }]
+      }
+    }
+    const offset = (page - 1) * itemsPerPage;
+    const users = await User.findAll({
+      where: {
+        account_type: 'premium',
+        ...searchcondition, // Combine both conditions into a single object
+      },
+      offset,
+      limit: itemsPerPage,
+    });
+    const totalUsers = await User.count({
+      where: {
+        account_type: 'premium',
+        ...searchcondition, // Combine both conditions into a single object
+      },
+    });
+    // console.log(totalUsers,'totalUsers',page,'page',itemsPerPage,'itemsPerPage')
+
+    // Prepare response data
+    const response = {
+      data: users,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalUsers / itemsPerPage),
+        totalUsers,
+        itemsPerPage,
+      },
+    };
+
+    // Send the response as JSON
+    res.json(response);
+  } catch (error) {
+    console.error("Error fetching premium user", error);
+    res.status(500).json({ error: "Internal Server Error" })
+  }
+}
 
 
 
@@ -620,7 +733,7 @@ const sendGifts = async (req, res, next) => {
 // };
 const get_user_photo_post = async (req, res) => {
   try {
-    console.log(req.params.user_id,"reqBody")
+    console.log(req.params.user_id, "reqBody")
     const user_id = req.params.user_id; // Assuming you pass the user ID in the URL parameters
 
     const photos = await PicturePost.findAll({
@@ -629,7 +742,7 @@ const get_user_photo_post = async (req, res) => {
       },
       order: [['createdAt', 'DESC']],
     });
-
+// console.log(photos,'photosphotosphotos')
     res.status(200).json({
       photos: photos,
     });
@@ -639,14 +752,16 @@ const get_user_photo_post = async (req, res) => {
   }
 };
 
- const changeUserAccount_type = async (req, res) => {
+
+
+const changeUserAccount_type = async (req, res) => {
   try {
- 
+
     const userId = req.params.id;
-   
+
     const { account_type } = req.body;
-    console.log(userId,account_type,"checking")
-   
+    console.log(userId, account_type, "checking")
+
     // Find the user by ID
     const existingUser = await User.findByPk(userId);
 
@@ -666,8 +781,524 @@ const get_user_photo_post = async (req, res) => {
     res.status(500).json({ message: 'Error generated while processing your request', error });
   }
 }
+//get like according to time 
 
 
+
+const getLikeinteraction = async (req, res) => {
+  logger.info("INFO -> Like interaction API CALLED");
+  try {
+    // const { id } = req.userData;
+    const id = req.params.user_id;
+    console.log(id, 'req.params.user_id')
+    const currentDate = new Date();
+
+    // Calculate start dates for different time ranges
+    const startDate15Days = new Date(currentDate);
+    startDate15Days.setDate(currentDate.getDate() - 15);
+
+    const startDate30Days = new Date(currentDate);
+    startDate30Days.setDate(currentDate.getDate() - 30);
+
+    const startDate90Days = new Date(currentDate);
+    startDate90Days.setDate(currentDate.getDate() - 90);
+
+    const result15Days = await getLikeData(id, startDate15Days, currentDate);
+    const result30Days = await getLikeData(id, startDate30Days, currentDate);
+    const result90Days = await getLikeData(id, startDate90Days, currentDate);
+    const totalLikes15Days = result15Days.reduce((total, item) => total + item.dataValues.total_like, 0);
+    const totalLikes30Days = result30Days.reduce((total, item) => total + item.dataValues.total_like, 0);
+    const totalLikes90Days = result90Days.reduce((total, item) => total + item.dataValues.total_like, 0);
+
+// console.log(totalLikes15Days,'totalLikes15Days')
+// console.log(totalLikes30Days,'totalLikes30Days')
+// console.log(totalLikes90Days,'totalLikes90Days')
+
+    // console.log(totalLikes15Days,'result15Days')
+    res.status(201).json({
+      message: "success",
+      payload: {
+        "fifteen_days": totalLikes15Days,
+        "thirty_days": totalLikes30Days,
+        "ninty_days": totalLikes90Days,
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ message: "error while fetching Like intraction, please try again" });
+  }
+};
+
+const getLikeData = async (userId, startDate, endDate) => {
+  return await Like.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "total_like"],
+    ],
+    where: {
+      reciever_id: userId,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+  });
+};
+
+//seender like data
+
+const getsenderlikedata=async(req,res)=>{
+  logger.info("INFO -> Sender Like interaction API CALLED");
+  try{
+    const userID=req.params.user_id
+    const currentDate=new Date()
+
+    const startDate15Days=new Date(currentDate)
+    startDate15Days.setDate(currentDate.getDate()-15);
+    const startDate30Days=new Date(currentDate)
+    startDate30Days.setDate(currentDate.getDate()-30);
+    const startDate90Days=new Date(currentDate)
+    startDate90Days.setDate(currentDate.getDate()-90)
+
+    const result15Days=await Senderlike(userID,startDate15Days,currentDate);
+    const result30Days=await Senderlike(userID,startDate30Days,currentDate);
+    const result90Days=await Senderlike(userID,startDate90Days,currentDate);
+
+    const totalsendlike15Days=result15Days.reduce((total,item)=>total+ item.dataValues.total_send_like,0);
+    const totalsendlike30Days=result30Days.reduce((total,item)=>total+ item.dataValues.total_send_like,0);
+    const totalsendlike90Days=result90Days.reduce((total,item)=>total+ item.dataValues.total_send_like,0)
+    // console.log(totalsendlike15Days,'result15Days sender')
+    // console.log(totalsendlike30Days,'result30Days sender')
+    // console.log(totalsendlike90Days,'result90Days sender')
+
+    res.status(201).json({
+      message: "success",
+      payload: {
+        "fifteen_days": totalsendlike15Days,
+        "thirty_days": totalsendlike30Days,
+        "ninty_days": totalsendlike90Days,
+      },
+    });
+  }catch(error){
+    logger.info(error)
+    return res.status(500).json({message:"error while fetching User Send Like intraction, please try again"})
+  }
+
+}
+
+const Senderlike=async(userId,startDate,endDate)=>{
+  return await Like.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "total_send_like"],
+    ],
+    where: {
+      sender_id: userId,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+  });
+}
+
+
+
+
+const getPostCommentInteraction = async (req, res) => {
+  logger.info("INFO -> Post Comment Interaction API CALLED");
+  try {
+    const userId = req.params.user_id;
+    console.log(userId, 'req.params.user_id');
+
+    const currentDate = new Date();
+
+    // Calculate start dates for different time ranges
+    const startDate15Days = new Date(currentDate);
+    startDate15Days.setDate(currentDate.getDate() - 15);
+
+    const startDate30Days = new Date(currentDate);
+    startDate30Days.setDate(currentDate.getDate() - 30);
+
+    const startDate90Days = new Date(currentDate);
+    startDate90Days.setDate(currentDate.getDate() - 90);
+
+    const result15Days = await getPostCommentData(userId, startDate15Days, currentDate);
+    const result30Days = await getPostCommentData(userId, startDate30Days, currentDate);
+    const result90Days = await getPostCommentData(userId, startDate90Days, currentDate);
+
+    const totalComments15Days = result15Days.reduce((total, item) => total + item.dataValues.total_comments, 0);
+    const totalComments30Days = result30Days.reduce((total, item) => total + item.dataValues.total_comments, 0);
+    const totalComments90Days = result90Days.reduce((total, item) => total + item.dataValues.total_comments, 0);
+    console.log(totalComments15Days, 'totalComments15Days')
+    res.status(201).json({
+      message: "success",
+      payload: {
+        "fifteen_days": totalComments15Days,
+        "thirty_days": totalComments30Days,
+        "ninty_days": totalComments90Days,
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ message: "error while fetching Post Comment intraction, please try again" });
+  }
+};
+
+
+
+
+
+
+
+
+const getPostCommentData = async (userId, startDate, endDate) => {
+  return await PostComment.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "total_comments"],
+    ],
+    where: {
+      user_id: userId,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+  });
+};
+
+// recived comment
+const getrecivedcomment=async(req,res)=>{
+ logger.info("INFO -Recived Comment API called")
+ try{
+  const userID = req.params.user_id;
+  const currentDate = new Date();
+
+  // Calculate start dates for different time ranges
+  const startDate15Days = new Date(currentDate);
+  startDate15Days.setDate(currentDate.getDate() - 15);
+
+  const startDate30Days = new Date(currentDate);
+  startDate30Days.setDate(currentDate.getDate() - 30);
+
+  const startDate90Days = new Date(currentDate);
+  startDate90Days.setDate(currentDate.getDate() - 90);
+
+  const result15Days = await recivedcomment(userID, startDate15Days, currentDate);
+  const result30Days = await recivedcomment(userID, startDate30Days, currentDate);
+  const result90Days = await recivedcomment(userID, startDate90Days, currentDate);
+  const totalComments15Days = result15Days.reduce((total, item) => total + item.dataValues.total_received_comments, 0);
+
+  const totalComments30Days = result30Days.reduce((total, item) => total + item.dataValues.total_received_comments, 0);
+
+  const totalComments90Days = result90Days.reduce((total, item) => total + item.dataValues.total_received_comments, 0);
+
+// console.log(result90Days,'result90Dats recived comment')
+// console.log(result15Days,'result15Dats recived comment')
+// console.log(result30Days,'result30Dats recived comment')
+// console.log(totalComments90Days,'result90Dats recived comment')
+// console.log(totalComments30Days,'result30Dats recived comment')
+// console.log(totalComments15Days,'result150Dats recived comment')
+
+
+// console.log('startDate15Days:', startDate15Days);
+// console.log('enddate:', currentDate);
+
+// console.log(userID,'userID')
+res.status(201).json({
+  message: "success",
+  payload: {
+    "fifteen_days": totalComments15Days,
+    "thirty_days": totalComments30Days,
+    "ninty_days": totalComments90Days,
+  },
+});
+
+ }catch(error){
+  logger.info(error)
+  return res.status(500).json({message:"error while fetching recived comment , please try again"})
+ }
+}
+
+const recivedcomment=async(userID,startDate,endDate)=>{
+   const videos=await Video.findAll({
+    attributes: ["id"],
+    where: {
+      user_id: userID,
+      // created: {
+      //   [Op.between]: [new Date(startDate), new Date(endDate)],
+      // },
+    },
+
+
+   })
+   const videoIds = videos.map((video) => video.id);
+   
+   return await PostComment.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+
+
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "total_received_comments"],
+    ],
+    where: {
+      video_id: videoIds,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+
+
+  });
+
+}
+///Diamond
+
+
+const getdiamondinteraction = async (req, res) => {
+  logger.info("INFO -> Diamond Interaction API CALLED");
+  try {
+    const userId = req.params.user_id;
+    console.log(userId, 'req.params.user_id');
+
+    const currentDate = new Date();
+
+    // Calculate start dates for different time ranges
+    const startDate15Days = new Date(currentDate);
+    startDate15Days.setDate(currentDate.getDate() - 15);
+
+    const startDate30Days = new Date(currentDate);
+    startDate30Days.setDate(currentDate.getDate() - 30);
+
+    const startDate90Days = new Date(currentDate);
+    startDate90Days.setDate(currentDate.getDate() - 90);
+
+    const result15Days = await getdiamondData(userId, startDate15Days, currentDate);
+    const result30Days = await getdiamondData(userId, startDate30Days, currentDate);
+    const result90Days = await getdiamondData(userId, startDate90Days, currentDate);
+
+    const totalDiamond15Days = result15Days.reduce((total, item) => total + parseInt(item.dataValues.totalCoins), 0);
+    const totalDiamond30Days = result30Days.reduce((total, item) => total + parseInt(item.dataValues.totalCoins), 0);
+    const totalDiamond90Days = result90Days.reduce((total, item) => total + parseInt(item.dataValues.totalCoins), 0);
+    
+
+
+    res.status(201).json({
+      message: "success",
+      payload: {
+        "fifteen_days": totalDiamond15Days,
+        "thirty_days": totalDiamond30Days,
+        "ninty_days": totalDiamond90Days,
+      },
+    });
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ message: "error while fetching diamond intraction, please try again" });
+  }
+};
+
+const getdiamondData = async (userId, startDate, endDate) => {
+  return await Gift.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("SUM", Sequelize.col("diamonds")), "totalCoins"],
+
+    ],
+    where: {
+      reciever_id: userId,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+  });
+};
+
+const getshareintraction = async (req, res) => {
+  logger.info("INFO -> Share Interaction API CALLED");
+  try {
+    const userID = req.params.user_id;
+    const currentDate = new Date();
+    // currentDate.setDate(currentDate.getDate() + 2);
+    // // console.log(currentDate,'currentDate')
+    //     // Corrected date calculations
+    const startDate15Days = new Date(currentDate);
+    startDate15Days.setDate(currentDate.getDate() - 15);
+
+    const startDate30Days = new Date(currentDate);
+    startDate30Days.setDate(currentDate.getDate() - 30);
+
+    const startDate90Days = new Date(currentDate);
+    startDate90Days.setDate(currentDate.getDate() - 90);
+
+    const result15Days = await getshare(userID, startDate15Days, currentDate);
+    const result30Days = await getshare(userID, startDate30Days, currentDate);
+    const result90Days = await getshare(userID, startDate90Days, currentDate);
+    const totalshare15Days = result15Days.reduce((total, item) => total + parseInt(item.dataValues.totalshared), 0);
+    const totalshare30Days = result30Days.reduce((total, item) => total + parseInt(item.dataValues.totalshared), 0);
+    const totalshare90Days = result90Days.reduce((total, item) => total + parseInt(item.dataValues.totalshared), 0);
+
+    // console.log(totalshare15Days, 'totalshare15Days');
+    // console.log(totalshare30Days, 'totalshare30Days');
+    // console.log(totalshare90Days, 'totalshare90Days');
+    // console.log(result15Days, 'totalshare15Days');
+    // console.log(result30Days, 'totalshare30Days');
+    // console.log(result90Days, 'totalshare90Days');
+
+    // console.log(userID, 'userID')
+    res.status(200).json({
+      message: "success",
+      payload: {
+        fifteen_days: totalshare15Days,
+        thirty_days: totalshare30Days,
+        ninty_days: totalshare90Days,
+      },
+    });
+
+  } catch (error) {
+    logger.error(error);
+    return res.status(500).json({ message: "Error while fetching share interaction, please try again" });
+  }
+};
+
+
+
+const getshare = async (userID, startDate, endDate) => {
+  return await videoshare.findAll({
+    attributes: [
+      [Sequelize.fn('DATE', Sequelize.col('timestamp')), 'day'],
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "totalshared"],
+    ],
+    where: {
+      user_id: userID,
+      timestamp: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn('DATE', Sequelize.col('timestamp'))],
+  });
+};
+
+
+const getsenderdiamond = async (req, res) => {
+  logger.info("INFO -> Sender Diamond info  API CALLED")
+  try {
+    const userID = req.params.user_id;
+    const currentDate = new Date()
+    const startDate15Days = new Date(currentDate)
+    startDate15Days.setDate(currentDate.getDate() - 15);
+
+    const startDate30Days = new Date(currentDate)
+    startDate30Days.setDate(currentDate.getDate() - 30);
+
+    const startDate90Days = new Date(currentDate)
+    startDate90Days.setDate(currentDate.getDate() - 90);
+
+  const result15Days=await Senderdiamond(userID,startDate15Days,currentDate)
+  const result30Days=await Senderdiamond(userID,startDate30Days,currentDate)
+  const result90Days=await Senderdiamond(userID,startDate90Days,currentDate)
+
+  const totalsenderdiamond15Days=result15Days.reduce((total,item)=>total + parseInt(item.dataValues.totalCoinssend), 0);
+  const totalsenderdiamond30Days=result30Days.reduce((total,item)=>total+ parseInt(item.dataValues.totalCoinssend),0);
+  const totalsenderdiamond90Days=result90Days.reduce((total,item)=>total + parseInt(item.dataValues.totalCoinssend),0);
+  // console.log(totalsenderdiamond15Days,'result15Days send diamond')
+  // console.log(totalsenderdiamond30Days,'totalsenderdiamond30Days send diamond')
+  // console.log(totalsenderdiamond90Days,'totalsenderdiamond90Days send diamond')
+
+
+  res.status(200).json({
+    message: "success",
+    payload: {
+      fifteen_days: totalsenderdiamond15Days,
+      thirty_days: totalsenderdiamond30Days,
+      ninty_days: totalsenderdiamond90Days,
+    },
+  });
+  } catch (error) {
+    logger.info(error)
+    return res.status(500).json({ message: 'Error while fetching Send Diamond interaction, please try again' })
+  }
+}
+
+const Senderdiamond=async(userID,startDate,endDate)=>{
+  return await Gift.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("SUM", Sequelize.col("diamonds")), "totalCoinssend"],
+
+    ],
+    where: {
+      sender_id: userID,
+      createdAt: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("createdAt"), "%Y-%m-%d")],
+  })
+
+}
+
+
+
+
+const getrecivedshare=async(req,res)=>{
+  logger.info(" Recived Share API Called ")
+  try{
+    const userID = req.params.user_id;
+    const currentDate=new Date()
+    const startDate15Days = new Date(currentDate)
+    startDate15Days.setDate(currentDate.getDate() - 15);
+    const startDate30Days=new Date(currentDate)
+    startDate30Days.setDate(currentDate.getDate()-30)
+    const startDate90Days=new Date(currentDate)
+    startDate90Days.setDate(currentDate.getDate()-90)
+
+    const result15Days=await recivedShare(userID,startDate15Days,currentDate)
+    const result30Days=await recivedShare(userID,startDate30Days,currentDate)
+    const result90Days=await recivedShare(userID,startDate90Days,currentDate)
+   
+    const totalrecivedshare15Days=result15Days.reduce((total,item)=>total + parseInt(item.dataValues.totalReceivedShare), 0);
+     const totalrecivedshare30Days=result30Days.reduce((total,item)=>total + parseInt(item.dataValues.totalReceivedShare),0);
+     const totalrecivedshare90Days=result90Days.reduce((total,item)=>total + parseInt(item.dataValues.totalReceivedShare),0)
+     console.log(userID,'userID')
+    // console.log(totalrecivedshare15Days,'totalrecivedshare15Days')
+    // console.log(totalrecivedshare30Days,'totalrecivedshare30Days')
+    // console.log(totalrecivedshare30Days,'totalrecivedshare30Days')
+    res.status(200).json({
+      message: "success",
+      payload: {
+        fifteen_days: totalrecivedshare15Days,
+        thirty_days: totalrecivedshare30Days,
+        ninty_days: totalrecivedshare90Days,
+      },
+    });
+
+  
+  }catch(error){
+   logger.info(error)
+   return res.status(500).json({message: 'Error while fetching recive share, please try again'})
+  }
+}
+
+
+const recivedShare = async (userID, startDate, endDate) => {
+  return await videoshare.findAll({
+    attributes: [
+      [Sequelize.fn("DATE_FORMAT", Sequelize.col("timestamp"), "%Y-%m-%d"), "day"],
+      [Sequelize.fn("COUNT", Sequelize.col("id")), "totalReceivedShare"],
+    ],
+    where: {
+      shared_people_id: userID,
+      timestamp: {
+        [Op.between]: [startDate, endDate],
+      },
+    },
+    group: [Sequelize.fn("DATE_FORMAT", Sequelize.col("timestamp"), "%Y-%m-%d")],
+  });
+};
 
 
 module.exports = {
@@ -681,7 +1312,14 @@ module.exports = {
   getBasicUsers,
   getPremiumUsers,
   get_user_photo_post,
-  changeUserAccount_type
-
+  changeUserAccount_type,
+  getLikeinteraction,
+  getPostCommentInteraction,
+  getdiamondinteraction,
+  getshareintraction,
+  getsenderdiamond,
+  getsenderlikedata,
+  getrecivedcomment,
+  getrecivedshare
 
 };

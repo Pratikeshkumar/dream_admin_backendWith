@@ -1,0 +1,12 @@
+1. live_stream_settings -> For managing the settings of live stream in real time.
+2. live_stream_comments -> For managing the comments of live stream in the real time.
+3. live_stream_gift -> For managing the gifts of live stream in the real time.
+4. live_stream_rose     -> For managing the rose of the live stream in the real time.
+5. live_stream_view     -> For managing the view of the live stream in the real time.
+6. live_stream_question_and_answer -> For managing the questions and answers of the live stream in the real time.
+7. live_stream_guest -> For managing the guest of the live stream in the real time.
+
+
+
+
+

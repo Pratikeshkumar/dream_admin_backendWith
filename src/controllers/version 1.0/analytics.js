@@ -1,4 +1,19 @@
-const { Gift, UserRelationship, Video, PostComment, UserInteraction, Like } = require('../../models');
+const { 
+  
+  UserRelationship, 
+  Video, 
+  PostComment, 
+  UserInteraction, 
+  Like,
+
+  Transaction,
+  Gift, 
+  MessageSubscription,
+  CommentRose,
+  UserFriendTransaction,
+  UserAdminTransaction,
+  SuperadminTransaction,
+ } = require('../../models');
 const logger = require('../../utils/logger');
 const { Op } = require('sequelize');
 const sequelize = require('sequelize')
@@ -248,6 +263,92 @@ const getUserInteractions = async (req, res) => {
   }
 };
 
+
+
+
+
+
+const getTimeTimeToHighestDiamondViewers = async (req, res) => {
+  logger.info("INFO -> TimeTimeToHighestDiamondViewers API CALLED");
+
+  try {
+    let { startingtime, endingtime } = req.params;
+    let { id } = req.userData;
+
+    let result = await UserInteraction.findAll({
+      attributes: [
+        [
+          sequelize.fn("DATE_FORMAT", sequelize.col("interaction_start"), "%Y-%m-%d"),
+          "day",
+        ],
+
+        [sequelize.fn("SUM", sequelize.col("interacted_time")), "total_interacted_time"],
+      ],
+
+      where: {
+        user_id: id, // Assuming user_id corresponds to the logged-in user
+        interaction_start: {
+          [Op.between]: [new Date(startingtime), new Date(endingtime)],
+        },
+      },
+      group: [
+        sequelize.fn("DATE_FORMAT", sequelize.col("interaction_start"), "%Y-%m-%d"),
+      ],
+    });
+
+    result = JSON.parse(JSON.stringify(result))
+
+    // console.log(result)
+    
+
+    let total_time_spended = 0;
+    result.forEach((item) => {
+      total_time_spended += Number(item.total_interacted_time)
+    });
+    res.status(200).json({
+      message: "Success",
+      payload: result,
+      total_time_spended: Math.round(total_time_spended / (1000 * 60))
+    });
+
+  }
+
+  catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error while fetching User Interactions, please try again" });
+  }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 module.exports = {
   getCoinAnalytics,
   ViewersSubmitComment,
@@ -256,4 +357,3 @@ module.exports = {
   getUserInteractions
 
 };
-

@@ -46,9 +46,10 @@ router.get("/allComments/:video_id", userAuth, validate(videoValidation.allComme
 router.post('/giftVideo', userAuth, validate(videoValidation.giftVideo), videoApis2.giftVideo);
 router.get("/searchAllVideos", userAuth, validate(videoValidation.searchAllVideos), videoApis2.searchAllVideos);
 router.get("/searchVideosFromProfile", userAuth, validate(videoValidation.searchVideosFromProfile), videoApis2.searchVideosFromProfile);
+router.post('/makeReport', userAuth, videoApis2.makeReport);  //report video')
 
 
 router.get("/userInvolvedVideosById/:user_id", userAuth, videoApis2.userInvolvedVideosById);
 router.get("/stats/:video_id", userAuth, validate(videoValidation.videoStats), videoApis2.videoStats);
-
+router.get("/getVideoUrl/:idVideo",videoApis2.getVideoUrl);
 module.exports = router;

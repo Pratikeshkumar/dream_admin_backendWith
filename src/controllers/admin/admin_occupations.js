@@ -60,7 +60,6 @@ const addOccupations = async (req, res) => {
 
 
 
-
 // const getOccupations = async (req, res) => {
 //     logger.info('INFO -> GETTING OCCUPATIONS API CALLED');
 //     try {

@@ -27,6 +27,11 @@ router.get('/getLanguageAllLanguageList/:page_no/:page_size', userApis2.getLangu
 router.get('/searchLanguage/:search_text', userApis2.searchLanguage)
 router.get('/getAllHobbiesList/:page_no/:page_size', userApis2.getAllHobbiesList)
 router.get('/searchHobbies/:search_text', userApis2.searchHobbies)
+router.get('/sendNotification', userApis2.sendNotification)
+router.post('/getUserShortInfo', userApis2.getUserShortInfo)
+router.post('/getMultipleUsersDiamond', userAuth, userApis2.getMultipleUsersDiamond)
+router.get('/isUsersFollowings/:user_id', userAuth, userApis2.isUsersFollowings)
+router.get('/getAllUserDiamondsByRanked/:page_no/:page_size', userAuth, userApis2.getAllUserDiamondsByRanked)
 
 
 /************************************* VERSION 2.0 */
@@ -44,7 +49,14 @@ router.post('/changeProfilePicture', userAuth, upload.fields([{ name: 'images', 
 router.post('/changeProfileVideo', userAuth, upload.fields([{ name: 'videos', maxCount: 1 }]), userApis2.changeProfileVideo)
 router.post('/addView', userApis2.addView)
 router.post('/addProfileVisit', userAuth, userApis2.addProfileVisit)
-router.post('/UserFriendSendDiamond',userApis2.UserFriendSendDiamond)
+router.post('/addBlockedUser', userAuth, userApis2.addBlockedUser)
+router.post('/removeBlockedUser', userAuth, userApis2.removeBlockedUser)
+router.post('/addFavouriteUser', userAuth, userApis2.addFavouriteUser)
+router.post('/removeFavouriteUser', userAuth, userApis2.removeFavouriteUser)
+router.post('/addUserReport', userAuth, userApis2.addUserReport)
+router.post('/UserFriendSendDiamond', userApis2.UserFriendSendDiamond)
+router.post('/addPaypalAccount', userApis2.addPaypalAccount)
+router.post('/addDataRequest', userApis2.addDataRequest)
 
 
 
@@ -53,26 +65,33 @@ router.post('/upload', upload.fields([{ name: "source", maxCount: 1 }]), userApi
 router.get('/infoById/:user_id', validate(userValidation.userInfoById), userApis2.userInfoById);
 router.get('/getAllMessages/:chatedPerson', userAuth, userApis2.getAllMessages)
 router.get('/getMyAllChatedPerson', userAuth, userApis2.getMyAllChatedPerson)
-router.get('/getOccupations',userApis2.getOccupations)
+router.get('/getOccupations', userApis2.getOccupations)
+router.get('/getOccupations', userApis2.getOccupations)
 router.get('/getPurchaseCoins', userApis2.getPurchaseCoins)
-router.get('/getRewardFromVideo',userApis2.getRewardFromVideo)
-router.get('/getRewardFromRoseMessage',userApis2.getRewardFromRoseMessage)
-router.get('/getRewardFromMessge',userApis2.getRewardFromMessge)
-router.get('/getAllTypesRewards',userApis2.getAllTypesRewards)
-router.get('/getUserFriendTransaction',userApis2.getUserFriendTransaction)
-router.get('/Check_Username_Email',userApis2.Check_Username_Email)
-
-
-
-
-
+router.get('/getRewardFromVideo', userApis2.getRewardFromVideo)
+router.get('/getRewardFromRoseMessage', userApis2.getRewardFromRoseMessage)
+router.get('/getRewardFromMessge', userApis2.getRewardFromMessge)
+router.get('/getAllTypesRewards', userApis2.getAllTypesRewards)
+router.get('/getUserFriendTransaction', userApis2.getUserFriendTransaction)
+router.get('/Check_Username_Email', userApis2.Check_Username_Email)
+router.get('/getBlockedMeUser/:id', userApis2.getBlockedMeUser)
+router.get('/getBlockedUserList/:id', userApis2.getBlockedUserList)
+router.get('/getPaypalAccount/:id', userApis2.getPaypalAccount)
+router.get('/checkDataStatus/:id', userApis2.checkDataStatus)
+router.get('/downloadUserData', userAuth, userApis2.downloadUserData)
+router.get('/getDataRequestStatus/:id', userApis2.getDataRequestStatus)
+router.get('/wheel_luck_user',userAuth,userApis2.wheel_luck_user)
 
 router.post('/updatePicture', upload.fields([{ name: 'images', maxCount: 1 }]), userApis2.updatePicture)
+
 
 
 /****************************** AVATAR */
 
 router.get('/avatar', userApis2.getAvatar)
 
+/***************** withdraw money */
+router.post('/withdraw_money_info',userAuth,userApis2.withdraw_money_info)
+/***************** withdraw money */
 
 module.exports = router

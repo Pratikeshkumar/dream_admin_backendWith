@@ -199,7 +199,7 @@ const User = sq.define('users', {
   },
   language: {
     type: DataTypes.JSON,
-    allowNull: false
+    allowNull: true
   }
 },
   {

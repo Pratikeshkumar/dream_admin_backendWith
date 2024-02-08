@@ -1,4 +1,22 @@
-const { Video, PostComment, CommentReply, Tag, Like, User, Gift, NewVideo, City, Country, VideoCountry, VideoCity, TaggingUser, TaggingText, PicturePost, VideoView, PostCommentReply } = require("../../models");
+const {
+  Video,
+  PostComment,
+  CommentReply,
+  Tag,
+  Like,
+  User,
+  Gift,
+  NewVideo,
+  City,
+  Country,
+  VideoCountry,
+  VideoCity,
+  TaggingUser,
+  TaggingText,
+  PicturePost,
+  VideoView,
+  PostCommentReply
+} = require("../../models");
 const logger = require('../../utils/logger')
 const errorHandler = require("../../utils/errorObject");
 const sequelize = require('sequelize');
@@ -117,6 +135,13 @@ const getAllUserVideos = async (req, res, next) => {
     return next(error);
   }
 };
+
+
+
+
+
+
+
 
 
 const getBlockedVideo = async (req, res) => {
@@ -361,25 +386,25 @@ const updateVideoCount = async (req, res) => {
   try {
     const { id } = req.params;
     const { viewCount } = req.body;
-    console.log(id,viewCount)
+    console.log(id, viewCount)
 
     // Create multiple VideoView entries in bulk for the video ID and view count
     const viewsToCreate = [];
     for (let i = 0; i < viewCount; i++) {
-        viewsToCreate.push({ video_id: id });
+      viewsToCreate.push({ video_id: id });
     }
 
     await VideoView.bulkCreate(viewsToCreate);
-    
+
     res.status(200).json({
-        message: 'Video view count updated successfully',
-        videoId: id,
-        newViewCount: viewCount,
+      message: 'Video view count updated successfully',
+      videoId: id,
+      newViewCount: viewCount,
     });
-} catch (error) {
+  } catch (error) {
     console.error('Error updating view count:', error);
     res.status(500).json({ message: 'Error updating view count', error });
-}
+  }
 };
 
 const deleteVideoCount = async (req, res) => {
@@ -408,20 +433,20 @@ const deleteVideoCount = async (req, res) => {
 
 
 
-const sendGiftInVideo =  
+const sendGiftInVideo =
 
 
 
-module.exports = {
-  getAllUserVideos,
-  deleteVideo,
-  updateVideoLike,
-  blockVideo,
-  UnblockVideo,
-  getBlockedVideo,
-  UnblockVideoStatus,
-  updateVideoDiamond,
-  updateVideoShare,
-  updateVideoCount,
-  deleteVideoCount
-}
+  module.exports = {
+    getAllUserVideos,
+    deleteVideo,
+    updateVideoLike,
+    blockVideo,
+    UnblockVideo,
+    getBlockedVideo,
+    UnblockVideoStatus,
+    updateVideoDiamond,
+    updateVideoShare,
+    updateVideoCount,
+    deleteVideoCount
+  }

@@ -60,7 +60,7 @@ const PayPalAccount = require('./paypal_account')
 const StripeAccount = require('./stripe_account')
 const WithdrawalRequest = require('./withdrawal_request')
 const WithdrawalTransaction = require('./user_withdrawal_transaction')
-const videoShare=require('./video_share')
+const videoShare = require('./video_share')
 const DataRequest = require('./data_request')
 
 
@@ -111,6 +111,10 @@ User.belongsToMany(User, { as: 'Following', through: UserRelationship, foreignKe
 
 
 PicturePost.belongsTo(User, { foreignKey: 'user_id' });
+
+Video.hasMany(PostComment, {
+  foreignKey: 'video_id',
+})
 
 PostComment.belongsTo(User, {
   foreignKey: 'user_id',
@@ -272,7 +276,7 @@ WheelLuck.belongsTo(User, { foreignKey: 'user_id', as: 'user_wheel_luck' })
 // payment 
 
 PayPalAccount.belongsTo(User, { foreignKey: 'user_id' });
-User.hasMany(PayPalAccount, { foreignKey: 'user_id' }); 
+User.hasMany(PayPalAccount, { foreignKey: 'user_id' });
 
 StripeAccount.belongsTo(User, { foreignKey: 'user_id' });
 

@@ -37,7 +37,7 @@ jobs:
           script: |
             # Checkout code on the EC2 instance
             cd dream_admin_backendWith
-            echo "hello"
+            echo "working perfectly"
             git checkout .
             git pull origin master
             yarn 
